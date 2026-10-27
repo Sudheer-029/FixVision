@@ -1,0 +1,25 @@
+# secrets
+.env
+.env.*
+!.env.example
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# node
+node_modules/
+.next/
+# data that must not be committed
+data/raw/
+data/cache/
+data/private/
+*.sqlite
+*.db
+# media (large) - keep only curated samples under data/samples/
+*.mp4
+*.mov
+*.wav
+!data/samples/**
+# os
+.DS_Store
