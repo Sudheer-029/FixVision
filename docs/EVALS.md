@@ -20,6 +20,8 @@ Staged trials on the rig ([RIG.md](RIG.md)), labeled at recording time in `data/
 |---|---|---|---|---|---|---|---|---|
 | Baseline v1 | — | — | — | — | — | — | — | — |
 | Tuned (dev-tuned prompts / thresholds) | — | — | — | — | — | — | — | — |
+| Muse open model, base (Fireworks) | — | — | — | — | — | — | — | — |
+| Muse open model, fine-tuned on dev split (Fireworks) | — | — | — | — | — | — | — | — |
 
 Faults are staged, the sample is small, and results are exploratory.
 

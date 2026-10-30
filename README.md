@@ -57,6 +57,7 @@ All faults are staged on a safe, low-voltage rig. See [docs/RIG.md](docs/RIG.md)
 | `muse-voice-transcribe-1.0` | Hindi / English symptom descriptions | Technicians describe faults by voice, hands busy |
 | Muse Spark Open (open weights, via Baseten) | Service-record drafting and an alternate reasoning backend for evals | Runs the eval loop cheaply on open weights |
 | `muse-image-1.0` *(optional)* | Annotated step cards | Visual guidance |
+| Fine-tuned Muse open model on Fireworks *(stretch)* | Strict-JSON test observations | Cheaper, more consistent observations, measured against the base model |
 
 The verdict itself is made by **our deterministic verification engine**, not by a model. Models produce observations with confidence; rules decide. See [docs/VERIFICATION_SPEC.md](docs/VERIFICATION_SPEC.md).
 
@@ -129,6 +130,7 @@ Everything in this repository was created between Oct 26 and Nov 4, 2026, except
 | [EVALS](docs/EVALS.md) | Evaluation method and results |
 | [META_API_NOTES](docs/META_API_NOTES.md) | Verified Meta Model API facts used in the build |
 | [BUILD_PLAN](docs/BUILD_PLAN.md) | Phased plan and task prompts |
+| [WEEKEND_RUNBOOK](docs/WEEKEND_RUNBOOK.md) | Step-by-step build order with Claude Code commands |
 | [DEMO_SCRIPT](docs/DEMO_SCRIPT.md) | The 3-minute demo |
 
 ## Safety and limits

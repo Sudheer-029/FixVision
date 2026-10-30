@@ -8,3 +8,4 @@
 - Metrics: confusion matrix over verdicts, false-pass count, inconclusive rate, latency p50/p95, cost per job.
 - Splits: `dev` (tuning) and `test` (held out). `--split test` requires a frozen config hash.
 - Stretch: prompt-ops and Meta-Harness runs on `dev`, final comparison on `test`.
+- Stretch: export `dev` observations as fine-tuning data for Fireworks (ADR-0006); compare base vs fine-tuned observer on `test`.
