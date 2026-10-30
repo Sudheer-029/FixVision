@@ -1,0 +1,12 @@
+# Healthy-rig baseline (docs/RIG.md, VERIFICATION_SPEC §6).
+# PLACEHOLDER until the rig is built: run the healthy rig 5 times with fresh batteries,
+# store the median flow. While `measured` is false the engine returns INCONCLUSIVE ("No rig baseline").
+measured: false
+version: "2026-10-30.0"
+baseline_lpm: null # median of 5 healthy 500 mL fills, L/min
+runs_fill_time_s: [] # the 5 raw fill times, seconds
+head_cm: null # outlet height above water surface
+water_level_cm: null # water depth above the pump
+supply: fresh_aa_x4
+fill_time_tolerance: 0.15
+confidence_threshold: 0.7
