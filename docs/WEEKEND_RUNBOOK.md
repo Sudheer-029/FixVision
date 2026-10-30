@@ -21,11 +21,12 @@ How to build FixVision with Claude Code, one step at a time. Each step = one sla
 | 5 | Sat | `/t4-perception` | `scripts/perceive.py` prints signals for a real clip | Clips |
 | 6 | Sat | `/t5-reasoning` | `scripts/run_clip.py` gives correct verdicts for F1–F3 repaired and faulty | — |
 | 7 | Sat PM | `/t6-api` | API tests pass, happy + Inconclusive paths | — |
+| 7b | Sat PM | Record all trial clips (RIG.md recording plan, ~80) and label them in `data/labels.csv` | Every clip labeled, dev/test split by session | Rig |
 | 8 | Sun | `/t7-web-app` | Full flow on your phone | Laptop and phone on same Wi-Fi, or deploy |
 | 9 | Sun | `/t8-guard-voice-measure` | Red-team test passes | — |
 | 10 | Sun | `/t9-records` | Record view + approval work | — |
 | 11 | Sun PM | Deploy (DEPLOYMENT.md) + record the 3 demo cases | Live URL works | — |
-| 12 | Mon | Record ~50 labeled trials, `/t10-evals` | EVALS table filled from test split | Rig |
+| 12 | Mon | `/t10-evals` on the clips recorded Saturday | EVALS table filled from test split | Labeled clips |
 | 13 | Mon | `/t11-baseten` | Open-weights eval config runs | Baseten key |
 | 14 | Mon (stretch) | `/t12-fireworks` | Base vs tuned rows in EVALS | Fireworks key |
 | 15 | Tue | `demo-director` subagent → record and edit video | ≤ 3:00, all checklist items | — |

@@ -8,7 +8,7 @@ You are a strict reviewer for FixVision. Read docs/VERIFICATION_SPEC.md, .claude
 Check and report, file:line for each finding:
 1. Could any path produce PASSED when a required check lacks evidence? Could a model output bypass the verification engine?
 2. Are thresholds, confidence cut-offs and required checks per fault exactly as the spec says?
-3. Is every adversarial case in spec §6 covered by a test?
+3. Is every adversarial case in spec §7 covered by a test?
 4. Do prompts or code describe SAM as diagnosing, or claim "proved fixed"?
 5. Any secrets, raw media, or test-split data leaking into prompts, fine-tuning or tuning?
 6. Is the matching docs/components/*.md updated?

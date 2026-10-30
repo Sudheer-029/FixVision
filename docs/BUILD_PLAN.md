@@ -4,26 +4,28 @@
 
 ## Phases
 
+Dates re-planned on 2026-10-30 to match [WEEKEND_RUNBOOK.md](WEEKEND_RUNBOOK.md) (accounts and docs took Oct 26–30; no code before Oct 30).
+
 | Phase | Dates (IST) | Goal | Done when |
 |---|---|---|---|
-| 0 Setup | Oct 27–28 | Accounts, repo, smoke calls, rig built, baseline measured | Every model answers a smoke call; `rig_baseline.yaml` filled; repo public |
-| 1 Core pipeline | Oct 28–30 | Upload → perception signals → observations → verification engine → verdict (CLI) | 3 faults × repaired / faulty produce correct verdicts on sample clips from CLI |
-| 2 Product | Oct 31–Nov 1 | Web app capture flow, triage, guidance, voice, records, trace view, guard | Full flow on a phone; guard blocks a test injection; deployed |
-| 3 Evidence | Nov 1–2 | Record trials, run evals, fill results, open-weight step | `EVALS.md` results table filled from the test split |
+| 0 Setup | Oct 27–30 | Accounts, repo, docs, smoke calls | Every model answers a smoke call; repo public |
+| 1 Core pipeline | Oct 30–31 | Scaffold, Meta client, verification engine, rig + baseline, perception, reasoning → verdict (CLI) | 3 faults × repaired / faulty produce correct verdicts on sample clips from CLI; `rig_baseline.yaml` filled |
+| 2 Product | Oct 31–Nov 1 | API, web app capture flow, guard, voice, records, trace view, deploy | Full flow on a phone; guard blocks a test injection; deployed |
+| 3 Evidence | Oct 31 (record) · Nov 2 (run) | Record all trials Saturday once the rig works; run evals, fill results, open-weight step Monday | `EVALS.md` results table filled from the test split |
 | 4 Ship | Nov 3–4 | Video, README, diagrams, Well-Architected review, submission | Submitted; X post live |
 
-**Cut order if behind:** Fireworks fine-tuning → Muse Image step cards → prompt-ops / Meta-Harness → case-library retrieval → voice (fallback: typed symptom) → PDF export. Never cut: verification engine, adversarial cases, trace view.
+**Cut order if behind:** Fireworks fine-tuning → Muse Image step cards → prompt-ops / Meta-Harness → PDF export → case-library retrieval → manager review beyond a single approve button → voice (fallback: typed symptom). Never cut: verification engine, adversarial cases, trace view, SAM mask overlay, EVALS results table.
 
 ## Budget
 
 | Item | Estimate |
 |---|---|
 | Muse Spark 1.3 (standard), ~300 dev jobs | ~$25–40 (video token cost to be measured Day 1) |
-| SAM 3.1 video, ~450 clips × ~300 frames | ~$27 |
+| SAM 3.1 video: every concept is billed for all its frames; ~$0.13 per job at 3 fps (perception-sam.md) × ~80 trial clips × ~3 runs (~$31), plus dev, cached | ~$30–40 |
 | Voice Transcribe | < $1 |
 | Evals on contributor mode / Baseten | ~$5 Meta + partner credits |
 | Muse Image (optional) | < $2 |
-| **Total Meta API** | **~$60–75 of the $150 credit** |
+| **Total Meta API** | **~$65–85 of the $150 credit** |
 | Baseten (Muse Spark Open evals, record summaries) | ~$30–60 of the $100 credit |
 | Fireworks (one fine-tuning job + eval inference, stretch) | ~$20–50 of the $100 credit |
 
@@ -52,9 +54,9 @@ Use one prompt per session. Always attach the referenced docs.
 
 **T2 Meta client** — "Read docs/META_API_NOTES.md and ADR-0003. Implement backend/app/clients/meta_client.py using the openai SDK with base_url and MODEL_API_KEY: responses + chat completions with JSON-schema output, file upload, retries with exponential backoff on 429/5xx, no retry on 400, 60 s timeout, content-hash response cache, and a cost ledger row per call using the prices in the notes. Add scripts/smoke.py. Tests use recorded fixtures only."
 
-**T3 Verification engine** — "Read docs/VERIFICATION_SPEC.md and docs/components/verification-engine.md. Implement the Pydantic schema, the five checks and the verdict combiner as pure functions with table-driven tests covering every boundary and every adversarial case in §6. 100% branch coverage."
+**T3 Verification engine** — "Read docs/VERIFICATION_SPEC.md and docs/components/verification-engine.md. Implement the Pydantic schema, the five checks and the verdict combiner as pure functions with table-driven tests covering every boundary and every adversarial case in §7. 100% branch coverage."
 
-**T4 Perception** — "Read docs/components/perception-sam.md and the SAM section of META_API_NOTES.md. Implement frame sampling with ffmpeg, SAM 3.1 concept and box prompts over the Responses API with streaming, parsing with meta-sam-parser, and the signals table. Tests on saved stream fixtures."
+**T4 Perception** — "Read docs/components/perception-sam.md and the SAM section of META_API_NOTES.md. Implement frame sampling with ffmpeg, SAM 3.1 concept prompts (and an optional joint point prompt) over the Responses API with streaming, parsing with meta-sam-parser, and presence timelines in seconds. Tests on saved stream fixtures."
 
 **T5 Reasoning agent** — "Read docs/components/reasoning-agent.md. Implement triage, guidance and observe_test with JSON-schema outputs, prompt files, grounding in data/guides/pump_guide.md, and golden-file tests."
 
@@ -70,7 +72,7 @@ Use one prompt per session. Always attach the referenced docs.
 
 **T11 Open weights** — "Read ADR-0004. Add a Baseten client for meta-models/muse-spark-open-1026 used for record summaries and as an alternate eval backend, selected by config."
 
-**T12 Fireworks fine-tune (stretch, only if Phases 1–2 are done by Nov 1)** — "Read ADR-0006, docs/EVALS.md and docs/components/evals-harness.md. Export the dev-split observe_test examples (input: sampled frames + check list + SAM signals; output: the labeled observations JSON) to Fireworks' supervised fine-tuning format, never including test-split clips. Add a Fireworks client (OpenAI-compatible, FIREWORKS_BASE_URL) selectable by config, a script to launch the fine-tuning job on FIREWORKS_BASE_MODEL, and an eval config that runs observe_test with the base and tuned models on the test split and adds both rows to the EVALS results table."
+**T12 Fireworks fine-tune (stretch, only if T1–T10 are done by Mon Nov 2 midday IST)** — "Read ADR-0006, docs/EVALS.md and docs/components/evals-harness.md. Export the dev-split observe_test examples (input: sampled frames + check list + SAM signals; output: the labeled observations JSON) to Fireworks' supervised fine-tuning format, never including test-split clips. Add a Fireworks client (OpenAI-compatible, FIREWORKS_BASE_URL) selectable by config, a script to launch the fine-tuning job on FIREWORKS_BASE_MODEL, and an eval config that runs observe_test with the base and tuned models on the test split and adds both rows to the EVALS results table."
 
 ## Daily routine
 

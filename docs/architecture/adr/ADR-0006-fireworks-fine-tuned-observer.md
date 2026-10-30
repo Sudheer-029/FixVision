@@ -5,10 +5,10 @@
 - **Pillars affected:** Cost optimization, Performance efficiency, Reliability
 
 ## Context
-The `observe_test` step returns a fixed set of observations (`switch_on_shown`, `drip_at_joint`, `timer_visible`, `job_token_read`, `intake_clear`) in strict JSON. It is called on every test clip, so its cost and consistency matter. We have $100 of Fireworks credit, and Fireworks supports training and serving Muse open-weight models.
+The `observe_test` step returns a fixed set of observations (the list in VERIFICATION_SPEC §4.1) in strict JSON. It is called on every test clip, so its cost and consistency matter. We have $100 of Fireworks credit, and Fireworks supports training and serving Muse open-weight models.
 
 ## Decision
-If Phases 1–2 are complete by Nov 1, fine-tune a Muse open-weight model on Fireworks using **dev-split** labeled observations only, serve it through Fireworks inference, and compare base vs fine-tuned vs Muse Spark 1.3 on the **test split** (false passes, observation accuracy, latency, cost per job). The verification engine stays unchanged: the tuned model only supplies observations.
+If T1–T10 are complete by Mon Nov 2 midday IST, fine-tune a Muse open-weight model on Fireworks using **dev-split** labeled observations only, serve it through Fireworks inference, and compare base vs fine-tuned vs Muse Spark 1.3 on the **test split** (false passes, observation accuracy, latency, cost per job). The verification engine stays unchanged: the tuned model only supplies observations.
 
 ## Alternatives considered
 | Option | Pros | Cons |

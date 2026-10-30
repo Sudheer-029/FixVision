@@ -9,6 +9,8 @@ FixVision helps field technicians diagnose supported water-pump faults and docum
 
 It is not "a chatbot that knows repairs". It is a system that refuses to close a repair without sufficient evidence.
 
+The pump is the first equipment family. The method (models observe, rules decide, no evidence means no verdict) applies to any field repair that has a measurable functional test.
+
 | | |
 |---|---|
 | Demo video | _link added at submission_ |
@@ -23,7 +25,7 @@ It is not "a chatbot that knows repairs". It is a system that refuses to close a
 1. **Capture the symptom.** The technician records a short video and describes the problem by voice (Hindi or English).
 2. **Focus the inspection.** Muse Spark proposes likely causes and asks for one targeted diagnostic check. SAM 3.1 highlights and tracks the component being inspected.
 3. **Guide the repair.** Step-by-step guidance from our approved pump guide, with technician approval and clear stop conditions.
-4. **Run the functional test.** After the repair, a guided test: measured flow (timed fill) plus a visible leak check while the pump is running.
+4. **Run the functional test.** After the repair, a guided test: flow timed from the video (500 mL fill) plus a visible leak check while the pump is running.
 5. **Issue a verdict.** A deterministic verification engine decides **Passed**, **Failed** or **Inconclusive** from the test evidence, and produces a service record with before/after evidence, measurements, test conditions and unresolved uncertainty.
 
 ### Verdicts
@@ -31,7 +33,7 @@ It is not "a chatbot that knows repairs". It is a system that refuses to close a
 | Verdict | Meaning |
 |---|---|
 | **Passed** | All required functional checks passed under the stated test conditions |
-| **Failed** | The fault remains, or a required check failed |
+| **Failed** | The fault remains, or a required or regression check failed |
 | **Inconclusive** | Not enough evidence to decide (e.g., component not visible, pump not shown running). FixVision asks for a new recording instead of guessing |
 
 FixVision never claims a machine is "proven fixed". It reports which checks passed under which conditions.

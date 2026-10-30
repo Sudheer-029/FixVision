@@ -22,7 +22,7 @@ Tub with water → pump submerged → hose up to a fixed head height (record cm)
 
 ## Baseline (Day 1)
 
-Run the healthy rig 5 times with fresh batteries; record the 500 mL fill time; store the median as `baseline_lpm` in `config/rig_baseline.yaml` with head height and water level.
+Run the healthy rig 5 times with fresh batteries; record the 500 mL fill time; store the median as `baseline_lpm` in `config/rig_baseline.yaml` with head height and water level, then set `measured: true` and bump `version` (until then every verdict is Inconclusive, "No rig baseline").
 
 ## Staged faults
 
@@ -35,7 +35,7 @@ Run the healthy rig 5 times with fresh batteries; record the 500 mL fill time; s
 ## Recording plan for evaluation
 
 - Per fault: ≥ 8 faulty runs and ≥ 8 repaired runs, varied lighting and angle.
-- Adversarial: ≥ 5 "switched off" clips, ≥ 5 "joint hidden" clips, ≥ 3 reused-video clips.
+- Adversarial (one group per row of VERIFICATION_SPEC §7): ≥ 5 "never switched on", ≥ 5 "joint hidden", ≥ 3 "switched on, no flow" (inlet fully blocked with the pump still submerged; switch off after ~25 s; never run the pump dry), ≥ 3 "typed time too fast", ≥ 3 "fill cut / jug out of frame", ≥ 3 reused test clips, ≥ 3 reused close-ups.
 - Healthy controls: ≥ 5.
 - Label every clip at recording time in `data/labels.csv` (clip id, fault, state, expected verdict, notes). Labels come from how the clip was staged, not from the model.
 - Split by recording session: dev (tuning) and test (held out, untouched until final report).

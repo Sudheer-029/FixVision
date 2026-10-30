@@ -6,5 +6,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Da
 
 ### Added
 - 2026-10-27: Project documentation set, verification spec, rig protocol, build plan.
-- 2026-10-30: Claude Code project kit (.claude commands, skills, subagents, settings) and weekend runbook.
 - 2026-10-28: Fireworks fine-tuning plan (ADR-0006, build task T12), budgets for Baseten and Fireworks credits.
+- 2026-10-30: Claude Code project kit (.claude commands, skills, subagents, settings) and weekend runbook.
+- 2026-10-30: ADR-0007, flow timed from the test clip.
+
+### Changed
+- 2026-10-30: Verification spec v0.2 after audit: one canonical observation list, per-clip timeline in seconds, job token on test clip and post-repair close-up, ordered verdict steps (scope → preconditions → observed failure → evidence → passed), fill-window integrity checks, F3 evidence, SAM presence timelines at 3 fps (error ≠ zero) with realistic cost, build plan re-dated, trials recorded Saturday, deployment on Render.
