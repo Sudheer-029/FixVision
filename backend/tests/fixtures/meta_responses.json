@@ -1,0 +1,14 @@
+{
+  "respond": {
+    "output_text": "{\"ok\": true}",
+    "usage": {"input_tokens": 1000, "output_tokens": 200, "total_tokens": 1200,
+              "input_tokens_details": {"cached_tokens": 400}}
+  },
+  "sam_stream": [
+    {"type": "response.created"},
+    {"type": "response.output_text.delta", "delta": "<0f>0<|box;x1=10;y1=12;x2=40;y2=60;w=640;h=480;c=0.91|><|mask;~abc|>\n"},
+    {"type": "response.output_text.delta", "delta": "<1f>0<|box;x1=11;y1=12;x2=41;y2=61;w=640;h=480;c=0.90|><|mask;~abd|>\n"},
+    {"type": "response.completed"}
+  ],
+  "asr": {"sessionId": "s1", "transcript": "pump se paani kam aa raha hai", "audioDurationMs": 3000, "turns": []}
+}

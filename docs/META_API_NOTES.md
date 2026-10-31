@@ -41,6 +41,7 @@ Open weights (not on Model API): Muse Spark Open, Muse Glimmer. Hackathon Basete
 | Muse Image | $0.01 per image |
 
 How video input is tokenized for Muse Spark is not documented; measure on Day 1.
+**Measured 2026-11-01 (`scripts/smoke.py`):** a 3 s, 640×480, 3 fps synthetic MP4 cost 796 input tokens (≈ 0.0006 $ in); the one-sentence answer used 1,092 output tokens, 1,038 of them reasoning. Re-measure on a real 30–40 s rig clip; reasoning tokens dominate the cost.
 Rate limits (per team): Muse Spark 3,000 RPM / 4M TPM; SAM 3,000 RPM; Muse Image 150 RPM.
 
 ## SAM 3.1 ([segmenting](https://dev.meta.ai/docs/sam/segmenting))

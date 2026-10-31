@@ -39,7 +39,7 @@ Daily spend check on the Billing page; `DAILY_SPEND_LIMIT_USD` enforced in the c
 - [ ] Modal credit requested (pending)
 - [ ] Watch the Fireworks session Fri Oct 30, 9:30 PM IST (fine-tuning Muse open models); note the base model id
 - [x] Public GitHub repo created: https://github.com/Sudheer-029/FixVision (commit these docs)
-- [ ] `scripts/smoke.py` calls each model once
+- [x] `scripts/smoke.py` calls each model once (2026-11-01, all 5 OK)
 - [ ] Rig assembled; 5 healthy baseline runs recorded; `config/rig_baseline.yaml`
 - [ ] `data/guides/pump_guide.md` written (our own words: symptoms, causes, steps, stop conditions for F1–F3)
 - [ ] Ask in #office-hours: SAM 3.1 video limits for hackathon accounts; Muse Spark video token cost

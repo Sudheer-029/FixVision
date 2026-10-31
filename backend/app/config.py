@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -22,6 +26,8 @@ class Settings(BaseSettings):
     guard_enabled: bool = True
     media_retention_days: int = 7
     rig_baseline_path: str = "../config/rig_baseline.yaml"
+    cache_dir: Path = REPO_ROOT / "data" / "cache"
+    ledger_path: Path = REPO_ROOT / "data" / "cache" / "ledger.sqlite"
 
 
 settings = Settings()
