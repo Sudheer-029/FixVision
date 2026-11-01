@@ -49,3 +49,46 @@ def extract_audio(src: str | Path, dst: str | Path) -> Path:
         + ["-c:a", "pcm_s16le", str(dst)]
     )
     return dst
+
+
+def for_model(src: str | Path, dst: str | Path) -> Path:
+    """720p H.264 MP4 with mono audio for Muse Spark (it reads embedded audio too)."""
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    _run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-vf", "scale=-2:720", "-c:v", "libx264"]
+        + [
+            "-crf",
+            "26",
+            "-preset",
+            "veryfast",
+            "-c:a",
+            "aac",
+            "-ac",
+            "1",
+            "-movflags",
+            "+faststart",
+        ]
+        + [str(dst)]
+    )
+    return dst
+
+
+def crop_frames(
+    src: str | Path, box: tuple[float, float, float, float], out_dir: str | Path, fps: float = 1.0
+) -> list[Path]:
+    """JPEG frames of `box` (padded 15%) at `fps`; frame i sits at i / fps seconds."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for old in out_dir.glob("f*.jpg"):
+        old.unlink()
+    x1, y1, x2, y2 = box
+    pad_w, pad_h = 0.15 * (x2 - x1), 0.15 * (y2 - y1)
+    x, y = max(0, x1 - pad_w), max(0, y1 - pad_h)
+    w, h = (x2 - x1) + 2 * pad_w, (y2 - y1) + 2 * pad_h
+    crop = f"crop=min({w:.0f}\\,iw-{x:.0f}):min({h:.0f}\\,ih-{y:.0f}):{x:.0f}:{y:.0f}"
+    _run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-vf", f"fps={fps},{crop}", "-q:v", "3"]
+        + [str(out_dir / "f%04d.jpg")]
+    )
+    return sorted(out_dir.glob("f*.jpg"))

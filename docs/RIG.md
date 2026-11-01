@@ -33,15 +33,15 @@ Fill time = first water entering the empty jar → water reaching the line. The 
 
 | Clip | Code | What it shows |
 |---|---|---|
-| `Healthy_01` | K7M4 | Healthy fill, about 25.5 s |
-| `Healthy_2` | K7M5 | Healthy fill, about 27 s |
-| `F1_faulty_01` | P4T9 | Blocked intake, fill about 52 s |
+| `Healthy_01` | K7M4 | Healthy fill 26 s (pipeline) |
+| `Healthy_2` | K7M5 | Healthy fill 26 s (pipeline) |
+| `F1_faulty_01` | P4T9 | Blocked intake, fill 51 s → FAILED (51% of healthy) |
 | `f1_repaired_01_closeup` | R2C6 | Clean intake close-up |
-| `f1_repaired_01` | R2C6 | Repaired, fill about 33 s (battery fading) |
+| `f1_repaired_01` | R2C6 | Repaired, fill 33 s → INCONCLUSIVE (79%, just under the 80% pass line; battery fading) |
 | `adv_never_on_01` | T4M6 | Pump never switched on |
 | `adv_hidden_01` (label `adv_pump_hidden_01`) | S2I3 | Pump covered by the code note at the start |
 
-Times are estimates from frames; T4 measures them from the video. Labels live in `data/labels.csv` and come from how each clip was staged, not from a model.
+Fill times are measured by the pipeline (`scripts/run_clip.py`, ADR-0010). Labels live in `data/labels.csv` and come from how each clip was staged, not from a model.
 
 ## Safety
 

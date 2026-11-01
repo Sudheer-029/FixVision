@@ -19,7 +19,7 @@ def fixture(name: str) -> str:
 
 
 def test_real_jar_masks_become_seconds():
-    assert sam.presence_times(fixture("glass_jar_4frames.txt"), 10.0, 3) == [
+    assert sam.presence_times(sam.parse(fixture("glass_jar_4frames.txt")), 10.0, 3) == [
         10.0,
         10.333,
         10.667,
@@ -28,11 +28,17 @@ def test_real_jar_masks_become_seconds():
 
 
 def test_no_match_is_empty_not_missing():
-    assert sam.presence_times(fixture("pump_no_match.txt"), 0.0, 3) == []
+    records = sam.parse(fixture("pump_no_match.txt"))
+    assert sam.presence_times(records, 0.0, 3) == [] and sam.median_box(records) is None
 
 
 def test_garbled_stream_is_missing():
-    assert sam.presence_times("<0f>0<|box;x1=1|>\n", 0.0, 3) is None
+    assert sam.parse("<0f>0<|box;x1=1|>\n") is None
+
+
+def test_median_box_follows_the_main_object():
+    x1, y1, x2, y2 = sam.median_box(sam.parse(fixture("glass_jar_4frames.txt")))
+    assert (x1, y1) == pytest.approx((374, 97), abs=3) and x1 < x2 and y1 < y2
 
 
 class FakeClient:
@@ -60,8 +66,9 @@ def test_perceive_builds_engine_timelines(tmp_path, no_ffmpeg):
         {"glass jar": fixture("glass_jar_4frames.txt"),
          "white pump": fixture("white_pump_closeup_3frames.txt")}
     )  # fmt: skip
-    timelines, cost = perceive(client, clip, closeup, 3, tmp_path)
+    timelines, boxes, cost = perceive(client, clip, closeup, 3, tmp_path)
     assert timelines["test"]["jar"].times == [0.0, 0.333, 0.667, 1.0]
+    assert boxes["jar"] is not None and boxes["intake"] is not None
     assert timelines["closeup"]["intake"].times == [0.0, 0.333, 0.667]
     assert timelines["test"]["jar"].interval_s == pytest.approx(1 / 3)
     assert cost == pytest.approx(0.02)
@@ -71,8 +78,17 @@ def test_request_error_gives_no_timeline(tmp_path, no_ffmpeg):
     clip = tmp_path / "test.mp4"
     clip.write_bytes(b"x")
     client = FakeClient(error=APIConnectionError(request=None))
-    timelines, cost = perceive(client, clip, None, 3, tmp_path)
-    assert timelines == {"test": {"jar": None}} and cost == 0.0
+    timelines, boxes, cost = perceive(client, clip, None, 3, tmp_path)
+    assert timelines == {"test": {"jar": None}} and boxes == {"jar": None} and cost == 0.0
+
+
+def test_garbled_answer_gives_no_timeline(tmp_path, no_ffmpeg):
+    clip = tmp_path / "test.mp4"
+    clip.write_bytes(b"x")
+    timelines, _, cost = perceive(
+        FakeClient({"glass jar": "<0f>0<|box|>\n"}), clip, None, 3, tmp_path
+    )
+    assert timelines == {"test": {"jar": None}} and cost == 0.01
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")

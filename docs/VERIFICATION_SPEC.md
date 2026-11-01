@@ -64,8 +64,8 @@ The canonical list. Every other doc refers here. Each observation is `{id, clip,
 | `switch_off_shown` | test | bool, `t` = moment of switching off | C1 |
 | `pump_running` | test | bool | C1 |
 | `water_flowing` | test | bool, `t` = first moment water is seen flowing from the hose into the jar | C1 |
-| `fill_start_t` | test | number (s): first water enters the empty jar | C2 |
-| `fill_line_t` | test | number (s): water reaches the fill line | C2 |
+| `fill_start_t` | test | number (s): first water enters the empty jar ([ADR-0010](architecture/adr/ADR-0010-fill-times-from-labelled-jar-frames.md): from per-frame labels of the SAM-cropped jar) | C2 |
+| `fill_line_t` | test | number (s): water reaches the fill line (same method) | C2 |
 | `leak_at_hose` | test | bool, `t` = moments water leaks from the hose | C3 |
 | `intake_clear` | closeup | bool | C4 |
 
@@ -95,7 +95,7 @@ Order inside each check: for C1, C3 and C4, an observed `fail` is decided first.
 |---|---|---|---|
 | `C0_preconditions` | `job_token_read` (test clip) equals the job's token (ignoring case and surrounding spaces); `timer_visible` and `pump_submerged` true; `visible_s[jar] ≥ 2` | — | Any of these missing, or token mismatch (possible reused video) |
 | `C1_running` | `switch_on_shown`; run window ≥ 20 s; `water_flowing = true` with its first `t` inside the run window; `pump_running` not `false` | `switch_on_shown`, run window ≥ 20 s and `water_flowing = false` | Switch-on not shown, run window < 20 s, `water_flowing` missing or below confidence, its time missing or outside the run window, or `pump_running = false` |
-| `C2_flow` | `speed ≥ speed_pass` | `speed < speed_fail` | `fill_start_t` or `fill_line_t` missing; `video_fill_s ≤ 0`; either time outside the run window; `jar_ratio_fill < 0.8`; typed time missing; `|fill_time_s − video_fill_s| / video_fill_s > fill_time_tolerance`; or speed between thresholds |
+| `C2_flow` | `speed ≥ speed_pass` | `speed < speed_fail` | `fill_start_t` or `fill_line_t` missing; `video_fill_s ≤ 0`; either time more than one frame (1 s) outside the run window; `water_flowing` not `true` with a time, or `fill_line_t` not after it; `jar_ratio_fill < 0.8`; typed time missing; `|fill_time_s − video_fill_s| / video_fill_s > fill_time_tolerance`; speed between thresholds; or `speed > 1.5` (faster than the pump can run, so the fill times are not trusted) |
 | `C3_no_leak` | Run window exists and `leak_at_hose = false` | `leak_at_hose = true` with at least one `t` inside the run window | Anything else (no run window, low confidence, leak times outside the run window or empty) |
 | `C4_cause_addressed` | Close-up token matches; `intake_clear = true` and `intake_visible_s ≥ 2` | Close-up token matches and `intake_clear = false` | Anything else |
 

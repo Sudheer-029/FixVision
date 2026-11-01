@@ -10,6 +10,11 @@ from app.verification.schema import CheckResult, Clip, JobEvidence, Observation,
 MIN_VISIBLE_S = 2.0
 MIN_RUN_S = 20.0
 JAR_MIN_RATIO = 0.8
+# model times are about ±1 s: fill times come from 1 fps frames (ADR-0010) and scene times
+# from video. Widening the run window by this much can only lengthen a measured fill.
+TIME_TOL_S = 1.0
+# the pump cannot run much faster than the healthy rig; above this a fill time is not trusted
+SPEED_MAX = 1.5
 MIN_INTAKE_S = 2.0
 
 # SAM tracks only what it can segment on the rig (ADR-0009); the pump is covered by
@@ -92,7 +97,7 @@ def c1_running(ev: JobEvidence, thr: Thresholds) -> CheckResult:
             detail=f"Switched on for {run_s:.1f} s but no water flowing",
         )
     seen = flowing.t[0] if _is(flowing, True) and flowing.t else None
-    if seen is not None and start <= seen <= end and not _is(running, False):
+    if seen is not None and start - TIME_TOL_S <= seen <= end and not _is(running, False):
         return CheckResult(
             id="C1_running",
             result="pass",
@@ -131,8 +136,16 @@ def c2_flow(ev: JobEvidence, thr: Thresholds) -> CheckResult:
     if video_s <= 0:
         return insufficient(f"Fill line ({t1:.1f} s) not after fill start ({t0:.1f} s)")
     window = signals.run_window(ev, c)
-    if window is None or not (window[0] <= t0 and t1 <= window[1]):
+    if window is None or not (window[0] - TIME_TOL_S <= t0 and t1 <= window[1] + TIME_TOL_S):
         return insufficient("Fill times outside the run window")
+    flow = ev.observation("water_flowing", "test", c)
+    if not (_is(flow, True) and flow.t):
+        # a string ring on an empty jar can read as "water at the line" (seen on adv_never_on_01)
+        return insufficient("Water not seen flowing in the clip, so the fill times are not trusted")
+    if t1 <= flow.t[0]:
+        return insufficient(
+            f"Fill line ({t1:.1f} s) before water was seen flowing ({flow.t[0]:.1f} s)"
+        )
     jar = signals.jar_ratio_fill(ev, t0, t1)
     if jar is None or jar < JAR_MIN_RATIO:
         return insufficient(f"Jar in view for {_fmt(jar and jar * 100, '%')} of the fill")
@@ -152,6 +165,8 @@ def c2_flow(ev: JobEvidence, thr: Thresholds) -> CheckResult:
         f"healthy {thr.baseline_fill_s:.1f} s) vs pass {thr.speed_pass:.0%}, "
         f"fail below {thr.speed_fail:.0%}"
     )
+    if speed > SPEED_MAX:
+        return insufficient(detail + f" (above {SPEED_MAX:.0%}: faster than this pump can run)")
     if speed < thr.speed_fail:
         return CheckResult(id="C2_flow", result="fail", evidence=evidence, detail=detail)
     if speed >= thr.speed_pass:

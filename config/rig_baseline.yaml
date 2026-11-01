@@ -1,11 +1,12 @@
 # Healthy-rig baseline (docs/RIG.md, VERIFICATION_SPEC §6).
-# Fill time = water first entering the jar → water reaching the fill line, read from the
-# healthy clips (2 runs; the spec asks for 5, but the 9 V battery fades, so more runs
-# later would no longer match the faulty/repaired clips). T4 re-measures these from video.
+# Fill time = water first entering the jar → water reaching the fill line, measured by the
+# pipeline itself (observe_fill v2, ADR-0010) so any bias in where the model sees "at the line"
+# cancels out. 2 runs; the spec asks for 5, but the 9 V battery fades, so later runs would no
+# longer match the faulty/repaired clips of the same session.
 measured: true
-version: "2026-11-01.1"
-baseline_fill_s: 26.3 # median of runs_fill_time_s
-runs_fill_time_s: [25.5, 27.0] # healthy_01, healthy_02
+version: "2026-11-01.2"
+baseline_fill_s: 26.0 # median of runs_fill_time_s
+runs_fill_time_s: [26.0, 26.0] # healthy_01 (2 → 28 s), healthy_02 (2 → 28 s)
 supply: battery_9v
 fill_time_tolerance: 0.15
 confidence_threshold: 0.7

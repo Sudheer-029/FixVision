@@ -1,0 +1,1 @@
+{"causes": [{"evidence": ["pump running with humming sound", "water coming very slowly", "jar takes double time to fill"], "fault_id": "F1", "likelihood": 0.85}], "requested_check": {"component_concept": "pump intake", "instruction": "Switch the pump off, lift the pump out of the water and hold the intake opening close to the camera so it can be seen clearly"}}

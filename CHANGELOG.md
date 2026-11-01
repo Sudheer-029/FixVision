@@ -11,6 +11,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Da
 - 2026-10-30: ADR-0007, flow timed from the test clip.
 - 2026-10-30: T1 scaffold (FastAPI backend, Next.js frontend, CI).
 - 2026-11-01: T2 Meta API client (retries, cache, cost ledger, spend limit), Baseten client, `scripts/smoke.py`.
+- 2026-11-01: T5 reasoning agent (`backend/app/agents/`: triage, guidance, observe_test, observe_fill; versioned prompts; one repair retry), pump guide `data/guides/pump_guide.md`, end-to-end `app/pipeline.py` and `scripts/run_clip.py`; ADR-0010 (fill times from SAM-cropped, time-labelled jar frames).
 - 2026-11-01: T4 SAM 3.1 perception (`backend/app/perception/`: ffmpeg sampling, `glass jar` and `white pump` prompts, presence timelines), recorded SAM fixtures, `scripts/perceive.py`; ADR-0009 (C1 water flow from Muse Spark).
 - 2026-11-01: T3 verification engine (`backend/app/verification/`) with boundary, adversarial and property tests at 100% branch coverage (enforced in CI); `scripts/verify_json.py`.
 
