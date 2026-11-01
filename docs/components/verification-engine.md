@@ -10,7 +10,7 @@
 `JobEvidence` (`schema.py`): job id and token, equipment, fault hypothesis, test clip duration, the §4.1 observations, SAM presence timelines keyed by clip then concept (`None` or absent = SAM error), typed `fill_time_s`, conditions. Rejected at load (trust boundary): NaN/inf numbers, duplicate (id, clip) observations, malformed job token, missing equipment. `scripts/verify_json.py` runs the engine on a JSON file.
 
 ## Design
-- Derives windowed values (`visible_s`, `stream_ratio`, `jar_ratio_fill`, `hose_in_view_s`, `intake_visible_s`) from SAM presence timelines once the run window is known (spec §4.2). A missing timeline gives a missing value, never zero.
+- Derives windowed values (`visible_s`, `jar_ratio_fill`, `intake_visible_s`) from SAM presence timelines once the run window is known (spec §4.2). A missing timeline gives a missing value, never zero.
 - One function per check (`c0_preconditions`, `c1_running`, `c2_flow`, `c3_no_leak`, `c4_cause_addressed`), each returning `pass | fail | insufficient_evidence` + evidence refs + detail.
 - Verdict combiner implements the ordered steps in spec §2: scope (incl. missing baseline) → preconditions → observed failure → evidence sufficiency → passed.
 - Thresholds loaded from `config/rig_baseline.yaml`, versioned.

@@ -43,7 +43,7 @@ Each verdict includes `reasons[]`, `checks[]`, `conditions`, `uncertainties[]` a
 
 1. **Setup (≥ 3 s):** rig in view, pump submerged, hose visible, jar with its fill line visible, on-screen timer visible, **job token in view**.
 2. **Power on:** switch turned on in view.
-3. **Run (≥ 20 s):** water stream visible from the hose into the jar; the hose stays in view.
+3. **Run (≥ 20 s):** water visibly flowing from the hose into the jar; the hose stays in view.
 4. **Timed fill:** jar and outlet stay in frame from the first water entering the empty jar until the water reaches the fill line (a tape or string mark; its volume does not matter, only that every run uses the same line). The technician also types the fill time as a cross-check.
 5. **Power off:** switch turned off in view.
 
@@ -63,6 +63,7 @@ The canonical list. Every other doc refers here. Each observation is `{id, clip,
 | `switch_on_shown` | test | bool, `t` = moment of switching on | C1 |
 | `switch_off_shown` | test | bool, `t` = moment of switching off | C1 |
 | `pump_running` | test | bool | C1 |
+| `water_flowing` | test | bool, `t` = first moment water is seen flowing from the hose into the jar | C1 |
 | `fill_start_t` | test | number (s): first water enters the empty jar | C2 |
 | `fill_line_t` | test | number (s): water reaches the fill line | C2 |
 | `leak_at_hose` | test | bool, `t` = moments water leaks from the hose | C3 |
@@ -72,14 +73,12 @@ An observation counts only with `confidence ≥ 0.7`; below that it is treated a
 
 ### 4.2 Signals (SAM 3.1, perception)
 
-Perception returns a **presence timeline** per concept: the sampled times (s) where a mask is present, plus the sample interval. A request that succeeds with no match gives an empty timeline (zero presence). A request that errors gives **no timeline**, and every value derived from it is missing (→ `insufficient_evidence`), never zero. Timelines are keyed by clip and concept (`intake` counts only from the close-up). "Seconds with a mask" = (distinct masked samples − 1) × sample interval, the span the samples prove; repeated times count once. SAM and Muse Spark run in parallel; the engine derives windowed values once the run window is known.
+Perception returns a **presence timeline** per concept: the sampled times (s) where a mask is present, plus the sample interval. A request that succeeds with no match gives an empty timeline (zero presence). A request that errors gives **no timeline**, and every value derived from it is missing (→ `insufficient_evidence`), never zero. Timelines are keyed by clip and concept (`intake` counts only from the close-up). "Seconds with a mask" = (distinct masked samples − 1) × sample interval, the span the samples prove; repeated times count once. SAM and Muse Spark run in parallel; the engine derives windowed values once the run window is known. SAM is used only for parts it segments reliably on the rig (the jar, and the pump in the close-up); the water stream, the clear hose and the submerged pump are observed by Muse Spark ([ADR-0009](architecture/adr/ADR-0009-sam-only-where-it-sees.md)).
 
 | Derived value | Definition | Used by |
 |---|---|---|
-| `visible_s[component]` | Seconds with a mask for `pump`, `hose`, `jar` in the first 5 s of the test clip | C0 |
-| `stream_ratio` | Share of sampled times in the run window with a `water stream` mask | C1 |
+| `visible_s[jar]` | Seconds with a `jar` mask in the first 5 s of the test clip | C0 |
 | `jar_ratio_fill` | Share of sampled times between `fill_start_t` and `fill_line_t` with a `jar` mask | C2 |
-| `hose_in_view_s` | Seconds with a `hose` mask inside the run window | C3 |
 | `intake_visible_s` | Seconds with an `intake` mask in the close-up | C4 |
 
 ### 4.3 Inputs (technician)
@@ -94,10 +93,10 @@ Order inside each check: for C1, C3 and C4, an observed `fail` is decided first.
 
 | Check ID | Pass | Fail | Insufficient evidence |
 |---|---|---|---|
-| `C0_preconditions` | `job_token_read` (test clip) equals the job's token (ignoring case and surrounding spaces); `timer_visible` and `pump_submerged` true; `visible_s ≥ 2` for `pump`, `hose`, `jar` | — | Any of these missing, or token mismatch (possible reused video) |
-| `C1_running` | `switch_on_shown`; run window ≥ 20 s; `stream_ratio ≥ 0.8`; `pump_running` not `false` | `switch_on_shown`, run window ≥ 20 s and `stream_ratio < 0.1` | Switch-on not shown, no stream timeline, run window < 20 s, `stream_ratio` between 0.1 and 0.8, or `pump_running = false` while `stream_ratio ≥ 0.8` |
+| `C0_preconditions` | `job_token_read` (test clip) equals the job's token (ignoring case and surrounding spaces); `timer_visible` and `pump_submerged` true; `visible_s[jar] ≥ 2` | — | Any of these missing, or token mismatch (possible reused video) |
+| `C1_running` | `switch_on_shown`; run window ≥ 20 s; `water_flowing = true` with its first `t` inside the run window; `pump_running` not `false` | `switch_on_shown`, run window ≥ 20 s and `water_flowing = false` | Switch-on not shown, run window < 20 s, `water_flowing` missing or below confidence, its time missing or outside the run window, or `pump_running = false` |
 | `C2_flow` | `speed ≥ speed_pass` | `speed < speed_fail` | `fill_start_t` or `fill_line_t` missing; `video_fill_s ≤ 0`; either time outside the run window; `jar_ratio_fill < 0.8`; typed time missing; `|fill_time_s − video_fill_s| / video_fill_s > fill_time_tolerance`; or speed between thresholds |
-| `C3_no_leak` | `leak_at_hose = false` and `hose_in_view_s ≥ 5` | `leak_at_hose = true` with at least one `t` inside the run window | Anything else (hose in view < 5 s, no hose timeline, low confidence, leak times outside the run window or empty) |
+| `C3_no_leak` | Run window exists and `leak_at_hose = false` | `leak_at_hose = true` with at least one `t` inside the run window | Anything else (no run window, low confidence, leak times outside the run window or empty) |
 | `C4_cause_addressed` | Close-up token matches; `intake_clear = true` and `intake_visible_s ≥ 2` | Close-up token matches and `intake_clear = false` | Anything else |
 
 `speed = baseline_fill_s / video_fill_s` (share of healthy speed), where `video_fill_s = fill_line_t − fill_start_t`. The typed `fill_time_s` is never used to compute speed.

@@ -171,7 +171,7 @@ def count_video_frames(path: Path) -> int:
          "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", str(path)],
         capture_output=True, text=True, check=True,
     ).stdout  # fmt: skip
-    return int(out.strip())
+    return int(out.strip().split(",")[0])  # some MP4s print a trailing "," (side data)
 
 
 class MetaClient:

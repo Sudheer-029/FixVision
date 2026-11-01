@@ -6,7 +6,7 @@ from hypothesis import strategies as st
 from pydantic import ValidationError
 
 from app.verification.engine import BATTERY_UNCERTAINTY, REQUIRED, verify
-from app.verification.schema import Conditions, JobEvidence, Thresholds, Timeline
+from app.verification.schema import Conditions, JobEvidence, Thresholds
 from app.verification.thresholds import load_thresholds
 from tests.verification.factory import (
     THRESHOLDS,
@@ -40,23 +40,22 @@ def test_healthy_job_passes():
 def never_switched_on():
     """Recorded as adv_never_on_01: nothing to measure because the pump never ran."""
     ev = replace_obs(healthy(), "switch_on_shown", drop=True)
-    ev = replace_obs(ev, "switch_off_shown", drop=True)
-    return with_timeline(ev, "water stream", Timeline(times=[], interval_s=1 / 3))
+    return replace_obs(ev, "switch_off_shown", drop=True)
 
 
 def switched_on_no_flow():
-    ev = with_timeline(healthy("F1"), "water stream", Timeline(times=[], interval_s=1 / 3))
+    ev = replace_obs(healthy(), "water_flowing", value=False)
     ev = replace_obs(ev, "fill_start_t", drop=True)
     return replace_obs(ev, "fill_line_t", drop=True)
 
 
 def pump_hidden():
-    """Recorded as adv_pump_hidden_01: the pump is covered for the opening seconds."""
-    return with_timeline(healthy(), "pump", timeline(6, 40))
+    """Recorded as adv_pump_hidden_01: the pump is covered, so it is not seen submerged."""
+    return replace_obs(healthy(), "pump_submerged", drop=True)
 
 
-def hose_hidden():
-    return with_timeline(healthy(), "hose", timeline(0, 3))
+def leak_unobserved():
+    return replace_obs(healthy(), "leak_at_hose", drop=True)
 
 
 def still_slow_after_repair():
@@ -170,7 +169,7 @@ def test_duplicate_observation_rejected():
         ("test_clip_duration_s",),
         ("observations", 6, "value"),
         ("observations", 3, "t", 0),
-        ("timelines", "test", "hose", "times", 0),
+        ("timelines", "test", "jar", "times", 0),
     ],
 )
 def test_nan_rejected(path):
@@ -217,10 +216,11 @@ def test_bad_thresholds_rejected(overrides):
 
 
 def test_sam_error_is_missing_evidence_not_zero():
-    """A SAM error on the stream must not read as 'no water' (which would be FAILED)."""
-    v = run(with_timeline(healthy("F1"), "water stream", None))
+    """A SAM error on the jar must not read as 'jar never in view' or 'no water'."""
+    v = run(with_timeline(healthy(), "jar", None))
     assert v.verdict == "INCONCLUSIVE"
-    assert check(v, "C1_running") == "insufficient_evidence"
+    assert check(v, "C0_preconditions") == "insufficient_evidence"
+    assert check(v, "C2_flow") == "insufficient_evidence"
 
 
 def test_preconditions_decide_before_failures():
@@ -235,7 +235,7 @@ def test_regression_failure_fails_the_job():
 
 
 def test_regression_insufficient_is_only_an_uncertainty():
-    v = run(hose_hidden())
+    v = run(leak_unobserved())
     assert v.verdict == "PASSED"
     assert any(u.startswith("C3_no_leak") for u in v.uncertainties)
 
@@ -295,6 +295,7 @@ OBS_IDS = [
     ("pump_running", "test"),
     ("fill_start_t", "test"),
     ("fill_line_t", "test"),
+    ("water_flowing", "test"),
     ("leak_at_hose", "test"),
     ("job_token_read", "closeup"),
     ("intake_clear", "closeup"),

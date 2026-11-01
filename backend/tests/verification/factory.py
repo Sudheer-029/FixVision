@@ -29,6 +29,7 @@ def healthy(fault: str = "F1", **overrides) -> JobEvidence:
         obs("switch_on_shown", True, t=[ON_T]),
         obs("switch_off_shown", True, t=[OFF_T]),
         obs("pump_running", True),
+        obs("water_flowing", True, t=[ON_T + 0.5]),
         obs("fill_start_t", FILL_START, t=[FILL_START]),
         obs("fill_line_t", FILL_MARK, t=[FILL_MARK]),
         obs("leak_at_hose", False),
@@ -44,10 +45,7 @@ def healthy(fault: str = "F1", **overrides) -> JobEvidence:
         equipment="mini_pump_3_6v",
         timelines={
             "test": {
-                "pump": timeline(),
                 "jar": timeline(),
-                "hose": timeline(),
-                "water stream": timeline(ON_T + 0.5, OFF_T),
             },
             "closeup": {"intake": timeline(0.0, 5.0)},
         },

@@ -54,8 +54,8 @@ All faults are staged on a safe, low-voltage rig. See [docs/RIG.md](docs/RIG.md)
 
 | Model | Job | Why it is necessary |
 |---|---|---|
-| `muse-spark-1.3` | Interprets symptom video + transcript, retrieves approved guidance, proposes causes, requests diagnostic checks, extracts observations from test videos | The only component that reasons over video, speech and documents together |
-| `sam-3.1` | Segments and tracks the pump, hose, jar, water stream and intake across frames | Gives frame-level, measurable evidence (what is in view, whether water is flowing) that the verification engine uses |
+| `muse-spark-1.3` | Interprets symptom video + transcript, retrieves approved guidance, proposes causes, requests diagnostic checks, extracts timed observations from test videos (switch on/off, water flowing, fill start and fill line) | The only component that reasons over video, speech and documents together |
+| `sam-3.1` | Segments and tracks the jar through the test and the pump intake in the close-up | Frame-level, measurable evidence of what was in view while the flow was timed |
 | `muse-voice-transcribe-1.0` | Hindi / English symptom descriptions | Technicians describe faults by voice, hands busy |
 | Muse Spark Open (open weights, via Baseten) | Service-record drafting and an alternate reasoning backend for evals | Runs the eval loop cheaply on open weights |
 | `muse-image-1.0` *(optional)* | Annotated step cards | Visual guidance |

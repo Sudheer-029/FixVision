@@ -33,10 +33,10 @@ def no_off(ev):
 
 
 def test_missing_timeline_is_missing_not_zero():
-    ev = with_timeline(healthy(), "water stream", None)
-    assert signals.stream_ratio(ev, (ON_T, OFF_T)) is None
-    empty = with_timeline(healthy(), "water stream", Timeline(times=[], interval_s=1 / 3))
-    assert signals.stream_ratio(empty, (ON_T, OFF_T)) == 0.0
+    ev = with_timeline(healthy(), "jar", None)
+    assert signals.jar_ratio_fill(ev, ON_T, OFF_T) is None
+    empty = with_timeline(healthy(), "jar", Timeline(times=[], interval_s=1 / 3))
+    assert signals.jar_ratio_fill(empty, ON_T, OFF_T) == 0.0
     assert signals.seconds_present(None, (0, 5)) is None
 
 
@@ -46,7 +46,7 @@ def test_ratio_window_without_samples_is_missing():
 
 
 def test_visible_s_counts_first_five_seconds():
-    assert signals.visible_s(healthy(), "pump") == pytest.approx(5.0)
+    assert signals.visible_s(healthy(), "jar") == pytest.approx(5.0)
 
 
 @pytest.mark.parametrize(
@@ -84,9 +84,10 @@ C0_CASES = [
     ("token conf 0.70", lambda ev: replace_obs(ev, "job_token_read", confidence=0.70), "pass"),
     ("timer hidden", lambda ev: replace_obs(ev, "timer_visible", value=False), "insufficient"),
     ("not submerged", lambda ev: replace_obs(ev, "pump_submerged", value=False), "insufficient"),
-    ("pump 2.0 s", lambda ev: with_timeline(ev, "pump", timeline(0, 2)), "pass"),
-    ("pump 1.67 s", lambda ev: with_timeline(ev, "pump", timeline(0, 5 / 3)), "insufficient"),
-    ("hose SAM error", lambda ev: with_timeline(ev, "hose", None), "insufficient"),
+    ("jar 2.0 s", lambda ev: with_timeline(ev, "jar", timeline(0, 2)), "pass"),
+    ("jar 1.67 s", lambda ev: with_timeline(ev, "jar", timeline(0, 5 / 3)), "insufficient"),
+    ("jar SAM error", lambda ev: with_timeline(ev, "jar", None), "insufficient"),
+    ("pump covered", lambda ev: replace_obs(ev, "pump_submerged", drop=True), "insufficient"),
     ("jar absent", lambda ev: with_timeline(ev, "jar", Timeline(times=[], interval_s=1)), "insufficient"),
 ]  # fmt: skip
 
@@ -100,25 +101,24 @@ def test_c0(name, mutate, expected):
 # -- C1 ----------------------------------------------------------------------------
 
 
-def stream(ev, present_share):
-    """Stream mask on the first `present_share` of the 91 run-window samples."""
-    n = round(91 * present_share)
-    times = [(12 + k) / 3 for k in range(n)]
-    return with_timeline(ev, "water stream", Timeline(times=times, interval_s=1 / 3))
+def flowing(ev, **fields):
+    return replace_obs(ev, "water_flowing", **fields)
 
 
 C1_CASES = [
     ("healthy", lambda ev: ev, "pass"),
     ("never switched on", lambda ev: replace_obs(ev, "switch_on_shown", drop=True), "insufficient"),
-    ("ratio 0.80", lambda ev: stream(ev, 73 / 91), "pass"),
-    ("ratio 0.79", lambda ev: stream(ev, 72 / 91), "insufficient"),
-    ("ratio 0.10", lambda ev: stream(ev, 10 / 91), "insufficient"),
-    ("ratio 0.099", lambda ev: stream(ev, 9 / 91), "fail"),
-    ("no stream at all", lambda ev: stream(ev, 0), "fail"),
-    ("stream SAM error", lambda ev: with_timeline(ev, "water stream", None), "insufficient"),
+    ("no water flowing", lambda ev: flowing(ev, value=False), "fail"),
+    ("no water, low conf", lambda ev: flowing(ev, value=False, confidence=0.69), "insufficient"),
+    ("flow unobserved", lambda ev: flowing(ev, drop=True), "insufficient"),
+    ("flow without a time", lambda ev: flowing(ev, t=[]), "insufficient"),
+    ("flow seen before switch-on", lambda ev: flowing(ev, t=[ON_T - 1]), "insufficient"),
+    ("flow seen after switch-off", lambda ev: flowing(ev, t=[OFF_T + 1]), "insufficient"),
+    ("flow at switch-on", lambda ev: flowing(ev, t=[ON_T]), "pass"),
+    ("flow value not bool", lambda ev: flowing(ev, value="yes"), "insufficient"),
     ("run 20.0 s", lambda ev: replace_obs(ev, "switch_off_shown", t=[ON_T + 20]), "pass"),
     ("run 19.9 s", lambda ev: replace_obs(ev, "switch_off_shown", t=[ON_T + 19.9]), "insufficient"),
-    ("run 19.9 s, no flow", lambda ev: stream(replace_obs(ev, "switch_off_shown", t=[ON_T + 19.9]), 0), "insufficient"),
+    ("run 19.9 s, no flow", lambda ev: flowing(replace_obs(ev, "switch_off_shown", t=[ON_T + 19.9]), value=False), "insufficient"),
     ("pump_running false", lambda ev: replace_obs(ev, "pump_running", value=False), "insufficient"),
     ("pump_running false low conf", lambda ev: replace_obs(ev, "pump_running", value=False, confidence=0.5), "pass"),
     ("pump_running missing", lambda ev: replace_obs(ev, "pump_running", drop=True), "pass"),
@@ -179,10 +179,8 @@ C3_CASES = [
     ("drip no times", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[]), "insufficient"),
     ("drip low conf", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[12.0], confidence=0.5), "insufficient"),
     ("drip but never switched on", lambda ev: replace_obs(replace_obs(ev, "leak_at_hose", value=True, t=[12.0]), "switch_on_shown", drop=True), "insufficient"),
-    ("hose 5.0 s", lambda ev: with_timeline(ev, "hose", timeline(10, 15)), "pass"),
-    ("hose 4.67 s", lambda ev: with_timeline(ev, "hose", timeline(10, 10 + 14 / 3)), "insufficient"),
-    ("hose SAM error", lambda ev: with_timeline(ev, "hose", None), "insufficient"),
-    ("hose hidden in run", lambda ev: with_timeline(ev, "hose", timeline(0, 3)), "insufficient"),
+    ("no leak but never switched on", lambda ev: replace_obs(ev, "switch_on_shown", drop=True), "insufficient"),
+    ("no leak low conf", lambda ev: replace_obs(ev, "leak_at_hose", confidence=0.5), "insufficient"),
     ("leak unobserved", lambda ev: replace_obs(ev, "leak_at_hose", drop=True), "insufficient"),
 ]  # fmt: skip
 
