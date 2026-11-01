@@ -74,7 +74,7 @@ An observation counts only with `confidence ≥ 0.7`; below that it is treated a
 
 ### 4.2 Signals (SAM 3.1, perception)
 
-Perception returns a **presence timeline** per concept: the sampled times (s) where a mask is present, plus the sample interval. A request that succeeds with no match gives an empty timeline (zero presence). A request that errors gives **no timeline**, and every value derived from it is missing (→ `insufficient_evidence`), never zero. SAM and Muse Spark run in parallel; the engine derives windowed values once the run window is known.
+Perception returns a **presence timeline** per concept: the sampled times (s) where a mask is present, plus the sample interval. A request that succeeds with no match gives an empty timeline (zero presence). A request that errors gives **no timeline**, and every value derived from it is missing (→ `insufficient_evidence`), never zero. Timelines are keyed by clip and concept (`intake` counts only from the close-up). "Seconds with a mask" = (distinct masked samples − 1) × sample interval, the span the samples prove; repeated times count once. SAM and Muse Spark run in parallel; the engine derives windowed values once the run window is known.
 
 | Derived value | Definition | Used by |
 |---|---|---|
@@ -90,13 +90,13 @@ Perception returns a **presence timeline** per concept: the sampled times (s) wh
 
 ## 5. Checks
 
-Run window = from `switch_on_shown.t` to `switch_off_shown.t` (or the end of the clip if switch-off is not shown or is earlier than switch-on).
+Run window = from `switch_on_shown.t` to `switch_off_shown.t` (or the end of the clip if switch-off is not shown or is earlier than switch-on; switch-off at the same moment gives a 0 s run).
 
 Order inside each check: for C1, C3 and C4, an observed `fail` is decided first. For C0 and C2, `insufficient_evidence` is decided first (missing or disagreeing inputs make the measurement unusable). `pass` is decided last everywhere. Any case a row does not list as `pass` or `fail` is `insufficient_evidence`.
 
 | Check ID | Pass | Fail | Insufficient evidence |
 |---|---|---|---|
-| `C0_preconditions` | `job_token_read` (test clip) equals the job's token; `timer_visible` and `pump_submerged` true; `visible_s ≥ 2` for `pump`, `hose joint`, `measuring jug` | — | Any of these missing, or token mismatch (possible reused video) |
+| `C0_preconditions` | `job_token_read` (test clip) equals the job's token (ignoring case and surrounding spaces); `timer_visible` and `pump_submerged` true; `visible_s ≥ 2` for `pump`, `hose joint`, `measuring jug` | — | Any of these missing, or token mismatch (possible reused video) |
 | `C1_running` | `switch_on_shown`; run window ≥ 20 s; `stream_ratio ≥ 0.8`; `pump_running` not `false` | `switch_on_shown`, run window ≥ 20 s and `stream_ratio < 0.1` | Switch-on not shown, no stream timeline, run window < 20 s, `stream_ratio` between 0.1 and 0.8, or `pump_running = false` while `stream_ratio ≥ 0.8` |
 | `C2_flow` | `flow_lpm ≥ flow_pass_lpm` | `flow_lpm < flow_fail_lpm` | `fill_start_t` or `fill_mark_t` missing; `video_fill_s ≤ 0`; either time outside the run window; `jug_ratio_fill < 0.8`; typed time missing; `|fill_time_s − video_fill_s| / video_fill_s > fill_time_tolerance`; or flow between thresholds |
 | `C3_no_leak` | `drip_at_joint = false` and `joint_in_view_s ≥ 5` | `drip_at_joint = true` with at least one `t` inside the run window | Anything else (joint in view < 5 s, no joint timeline, low confidence, drip times outside the run window or empty) |
@@ -151,6 +151,7 @@ Thresholds are versioned; every record stores the threshold version used.
   "verdict": "PASSED|FAILED|INCONCLUSIVE",
   "checks": [{"id": "C2_flow", "result": "pass|fail|insufficient_evidence", "evidence": ["test@14.2", "test@35.6", "input:fill_time_s=21.4"], "detail": "1.40 L/min (video 21.4 s, typed 21.4 s) vs pass 1.28"}],
   "conditions": {"supply": "fresh_aa_x4", "head_cm": 20, "water_level_cm": 8},
+  "run_s": 30.0,
   "uncertainties": ["Joint visible for 6.1 s only"],
   "requested_actions": [],
   "thresholds_version": "2026-10-30.1",
@@ -158,4 +159,4 @@ Thresholds are versioned; every record stores the threshold version used.
 }
 ```
 
-The full Pydantic models live in `backend/app/verification/schema.py`.
+The full Pydantic models live in `backend/app/verification/schema.py`. Evidence is validated at load: NaN or infinite numbers, two observations with the same id and clip, a job token that is not 4 letters or digits, or a missing `equipment` are rejected. Thresholds outside their bounds (tolerance 0–0.3, confidence threshold 0.5–1, fail below pass) make the baseline invalid (→ "No rig baseline"). Missing test conditions are listed in `uncertainties[]`.

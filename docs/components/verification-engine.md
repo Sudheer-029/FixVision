@@ -4,7 +4,10 @@
 **Code:** `backend/app/verification/` (pure Python, no network)
 
 ## Interface
-`verify(job: JobEvidence, thresholds: Thresholds) -> Verdict`
+`verify(job: JobEvidence, thresholds: Thresholds | None) -> Verdict` · `load_thresholds(path) -> Thresholds | None` (None = missing, invalid or unmeasured baseline → INCONCLUSIVE)
+
+## Inputs
+`JobEvidence` (`schema.py`): job id and token, equipment, fault hypothesis, test clip duration, the §4.1 observations, SAM presence timelines keyed by clip then concept (`None` or absent = SAM error), typed `fill_time_s`, conditions. Rejected at load (trust boundary): NaN/inf numbers, duplicate (id, clip) observations, malformed job token, missing equipment. `scripts/verify_json.py` runs the engine on a JSON file.
 
 ## Design
 - Derives windowed values (`visible_s`, `stream_ratio`, `jug_ratio_fill`, `joint_in_view_s`, `intake_visible_s`) from SAM presence timelines once the run window is known (spec §4.2). A missing timeline gives a missing value, never zero.

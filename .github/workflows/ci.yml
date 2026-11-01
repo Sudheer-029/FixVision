@@ -17,7 +17,7 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run pytest -q
+      - run: uv run pytest -q --cov=app/verification --cov-branch --cov-fail-under=100
 
   frontend:
     runs-on: ubuntu-latest
