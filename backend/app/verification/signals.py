@@ -58,12 +58,12 @@ def stream_ratio(ev: JobEvidence, window: Window) -> float | None:
     return ratio_present(ev.timeline("test", "water stream"), window)
 
 
-def jug_ratio_fill(ev: JobEvidence, fill_start_t: float, fill_mark_t: float) -> float | None:
-    return ratio_present(ev.timeline("test", "measuring jug"), (fill_start_t, fill_mark_t))
+def jar_ratio_fill(ev: JobEvidence, fill_start_t: float, fill_line_t: float) -> float | None:
+    return ratio_present(ev.timeline("test", "jar"), (fill_start_t, fill_line_t))
 
 
-def joint_in_view_s(ev: JobEvidence, window: Window) -> float | None:
-    return seconds_present(ev.timeline("test", "hose joint"), window)
+def hose_in_view_s(ev: JobEvidence, window: Window) -> float | None:
+    return seconds_present(ev.timeline("test", "hose"), window)
 
 
 def intake_visible_s(ev: JobEvidence) -> float | None:

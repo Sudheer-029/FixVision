@@ -25,7 +25,7 @@ The pump is the first equipment family. The method (models observe, rules decide
 1. **Capture the symptom.** The technician records a short video and describes the problem by voice (Hindi or English).
 2. **Focus the inspection.** Muse Spark proposes likely causes and asks for one targeted diagnostic check. SAM 3.1 highlights and tracks the component being inspected.
 3. **Guide the repair.** Step-by-step guidance from our approved pump guide, with technician approval and clear stop conditions.
-4. **Run the functional test.** After the repair, a guided test: flow timed from the video (500 mL fill) plus a visible leak check while the pump is running.
+4. **Run the functional test.** After the repair, a guided test: the time to fill a jar to a marked line, measured from the video and compared with the healthy pump, plus a leak check on the hose while the pump is running.
 5. **Issue a verdict.** A deterministic verification engine decides **Passed**, **Failed** or **Inconclusive** from the test evidence, and produces a service record with before/after evidence, measurements, test conditions and unresolved uncertainty.
 
 ### Verdicts
@@ -40,13 +40,13 @@ FixVision never claims a machine is "proven fixed". It reports which checks pass
 
 ### Supported scope (hackathon)
 
-One equipment family (small low-voltage DC submersible pumps), three staged faults:
+One equipment family (small low-voltage DC submersible pumps), one staged fault, done end to end:
 
 | ID | Fault | Typical symptom |
 |---|---|---|
-| F1 | Blocked inlet | Pump runs, flow is low |
-| F2 | Leaking hose joint | Water drips at the joint while running |
-| F3 | Weak power supply | Pump runs, flow is low, inlet is clear |
+| F1 | Blocked inlet | Pump runs, the jar fills much slower than with a healthy pump |
+
+Any other fault is out of scope and returns **Inconclusive** with a recommendation to escalate ([ADR-0008](docs/architecture/adr/ADR-0008-f1-only-relative-flow.md)).
 
 All faults are staged on a safe, low-voltage rig. See [docs/RIG.md](docs/RIG.md).
 
@@ -55,7 +55,7 @@ All faults are staged on a safe, low-voltage rig. See [docs/RIG.md](docs/RIG.md)
 | Model | Job | Why it is necessary |
 |---|---|---|
 | `muse-spark-1.3` | Interprets symptom video + transcript, retrieves approved guidance, proposes causes, requests diagnostic checks, extracts observations from test videos | The only component that reasons over video, speech and documents together |
-| `sam-3.1` | Segments and tracks the inspected component, water stream and joint region across frames | Gives frame-level, measurable evidence (visibility, stream presence, drip region) that the verification engine uses |
+| `sam-3.1` | Segments and tracks the pump, hose, jar, water stream and intake across frames | Gives frame-level, measurable evidence (what is in view, whether water is flowing) that the verification engine uses |
 | `muse-voice-transcribe-1.0` | Hindi / English symptom descriptions | Technicians describe faults by voice, hands busy |
 | Muse Spark Open (open weights, via Baseten) | Service-record drafting and an alternate reasoning backend for evals | Runs the eval loop cheaply on open weights |
 | `muse-image-1.0` *(optional)* | Annotated step cards | Visual guidance |
@@ -141,6 +141,7 @@ Everything in this repository was created between Oct 26 and Nov 4, 2026, except
 - Low-voltage demonstration rig. FixVision does not guide mains-voltage, gas or high-pressure work.
 - Guidance requires technician approval at each step and lists stop conditions.
 - A verdict describes checks under stated conditions. It is not a guarantee of safe operation.
+- The demo rig runs on a 9 V battery that weakens with use, so healthy fills slow down over a session. Flow is compared with a healthy baseline recorded in the same session, and every record says so.
 
 ## License
 

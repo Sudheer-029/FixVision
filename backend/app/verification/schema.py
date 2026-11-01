@@ -9,9 +9,9 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Clip = Literal["test", "closeup"]
-Fault = Literal["F1", "F2", "F3", "unknown"]
+Fault = Literal["F1", "unknown"]
 Result = Literal["pass", "fail", "insufficient_evidence"]
-Supply = Literal["fresh_aa_x4", "used_aa_x4", "usb_5v"]
+Supply = Literal["battery_9v", "usb_5v"]
 VerdictId = Literal["PASSED", "FAILED", "INCONCLUSIVE"]
 CheckId = Literal["C0_preconditions", "C1_running", "C2_flow", "C3_no_leak", "C4_cause_addressed"]
 
@@ -81,16 +81,25 @@ class JobEvidence(Strict):
 
 
 class Thresholds(Strict):
+    """Flow is judged as speed relative to the healthy rig: baseline fill time / video fill time."""
+
     version: str
-    baseline_lpm: float = Field(gt=0)
-    flow_pass_lpm: float = Field(gt=0)
-    flow_fail_lpm: float = Field(gt=0)
+    baseline_fill_s: float = Field(gt=0)
+    speed_pass: float = Field(0.8, gt=0, le=1)
+    speed_fail: float = Field(0.6, gt=0, le=1)
     # §6 fixes 0.15; bounds stop a typo from switching the cross-check off
     fill_time_tolerance: float = Field(0.15, gt=0, le=0.3)
     # swept on the dev split only (§6)
     confidence_threshold: float = Field(0.7, ge=0.5, le=1)
 
-    @field_validator("baseline_lpm", "fill_time_tolerance", "confidence_threshold", mode="before")
+    @field_validator(
+        "baseline_fill_s",
+        "speed_pass",
+        "speed_fail",
+        "fill_time_tolerance",
+        "confidence_threshold",
+        mode="before",
+    )
     @classmethod
     def _no_bool(cls, v):
         if isinstance(v, bool):
@@ -99,8 +108,8 @@ class Thresholds(Strict):
 
     @model_validator(mode="after")
     def _ordered(self):
-        if self.flow_fail_lpm >= self.flow_pass_lpm:
-            raise ValueError("flow_fail_lpm must be below flow_pass_lpm")
+        if self.speed_fail >= self.speed_pass:
+            raise ValueError("speed_fail must be below speed_pass")
         return self
 
 

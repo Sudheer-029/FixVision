@@ -12,7 +12,7 @@ description: Non-negotiable product, verification and hackathon rules for FixVis
 4. **SAM 3.1 only segments and tracks.** Never describe or code it as diagnosing faults.
 5. **Wording:** "Passed these checks under these conditions", never "proved fixed" or "guaranteed".
 6. **Guidance** comes only from `data/guides/pump_guide.md` and approved cases, always with stop conditions, always requiring technician approval.
-7. **Scope:** 3–6 V mini submersible pump, faults F1 blocked inlet, F2 leaking joint, F3 weak supply. Anything else → refuse / Inconclusive with escalation.
+7. **Scope:** 3–6 V mini submersible pump, fault F1 blocked inlet only (ADR-0008). Anything else → refuse / Inconclusive with escalation.
 8. **Self-improvement claims** only from the held-out test split (ADR-0005). Never tune on test data.
 
 ## Data and safety

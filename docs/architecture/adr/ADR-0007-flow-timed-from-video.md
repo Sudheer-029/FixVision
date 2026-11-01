@@ -1,6 +1,6 @@
 # ADR-0007: Flow is timed from the test clip; the typed fill time is only a cross-check
 
-- **Status:** Accepted
+- **Status:** Accepted; units and names updated by [ADR-0008](ADR-0008-f1-only-relative-flow.md) (fill line instead of 500 mL, speed relative to the healthy baseline instead of L/min)
 - **Date:** 2026-10-30
 - **Pillars affected:** Reliability, Security
 

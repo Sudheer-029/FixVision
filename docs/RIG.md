@@ -1,48 +1,51 @@
 # Demonstration rig and staged faults
 
-**Status:** v0.1 (2026-10-27)
+**Status:** v0.2 (2026-11-01, the rig as built; see [ADR-0008](architecture/adr/ADR-0008-f1-only-relative-flow.md))
 
 ## Bill of materials
 
-| Item | Example source | Approx. price (INR) |
+| Item | Source | Approx. price (INR) |
 |---|---|---|
-| Mini submersible pump, 3–6 V DC, 80–120 L/h (×2, one spare) | [Probots PRO919](https://probots.co.in/3-6v-mini-water-pump-submersible-for-diy-hobby-projects-120l-h.html) | 69 each |
-| Silicone / PVC tube, 5 mm inner diameter, 1 m | Local hardware or online | 30–60 |
-| 4×AA battery holder **with switch** (or USB cable with bare leads + power bank) | Local electronics or online | 30–60 |
-| Fresh and partly used AA batteries | — | — |
-| Clear plastic tub or bucket | Home | 0 |
-| Measuring jug with 500 mL mark | Home | 0 |
-| Phone stand, a cloth or sponge (for blockage), tape | Home | 0 |
+| Mini submersible pump, 3–6 V DC, 80–120 L/h | [Probots PRO919](https://probots.co.in/3-6v-mini-water-pump-submersible-for-diy-hobby-projects-120l-h.html) | 69 |
+| Clear hose, about 5 mm inner diameter | Local hardware | 30 |
+| 9 V battery with snap connector and a rocker switch | Local electronics | 40 |
+| Glass bowl (source), raised on a box | Home | 0 |
+| Tall clear jar with a string tied round it as the fill line (receiver) | Home | 0 |
+| Second phone running a stopwatch, phone stand, sticky notes, marker | Home | 0 |
 
 Avoid aquarium fountain pumps that run on 230 V mains.
 
 ## Layout
 
-Tub with water → pump submerged → hose up to a fixed head height (record cm) → hose joint midway (taped connector) → outlet over the measuring jug. Phone on a stand framing pump, joint and jug. On-screen timer visible (second phone or the capture screen timer).
+Source bowl with the pump submerged, raised on a box → hose over the rim, out of the water → hose end above the jar, so the falling stream is visible. Battery and switch on the box. Phone in landscape on a stand, framing (left to right) the stopwatch phone, the box with the job code on a sticky note, and the jar with its fill line. The water level in the source bowl is the same at the start of every run; the jar is emptied back into it between runs.
 
-## Baseline (Day 1)
+## Baseline
 
-Run the healthy rig 5 times with fresh batteries; record the 500 mL fill time; store the median as `baseline_lpm` in `config/rig_baseline.yaml` with head height and water level, then set `measured: true` and bump `version` (until then every verdict is Inconclusive, "No rig baseline").
+Fill time = first water entering the empty jar → water reaching the line. The median of the healthy clips recorded in the same session is stored as `baseline_fill_s` in `config/rig_baseline.yaml`. The 9 V battery weakens with use (healthy fills went from about 26 s to about 34 s within an hour), so the baseline is only valid for clips recorded in the same session.
 
-## Staged faults
+## Staged fault
 
 | ID | How to stage | How to repair |
 |---|---|---|
-| F1 blocked inlet | Wrap cloth or sponge over the intake | Remove blockage, show clean intake close-up |
-| F2 leaking joint | Loosen the hose joint or make a small cut before the joint tape | Re-seat or re-tape the joint, show close-up |
-| F3 weak supply | Use partly drained batteries | Replace with fresh batteries, record in conditions |
+| F1 blocked inlet | Cover most of the intake hole with tape or tissue until the fill takes about twice as long | Remove the blockage; record a close-up of the clean intake with the job code in shot |
 
-## Recording plan for evaluation
+## Recorded clips (2026-11-01, raw files in `data/raw/`, not committed)
 
-- Per fault: ≥ 8 faulty runs and ≥ 8 repaired runs, varied lighting and angle.
-- Adversarial (one group per row of VERIFICATION_SPEC §7): ≥ 5 "never switched on", ≥ 5 "joint hidden", ≥ 3 "switched on, no flow" (inlet fully blocked with the pump still submerged; switch off after ~25 s; never run the pump dry), ≥ 3 "typed time too fast", ≥ 3 "fill cut / jug out of frame", ≥ 3 reused test clips, ≥ 3 reused close-ups.
-- Healthy controls: ≥ 5.
-- Label every clip at recording time in `data/labels.csv` (clip id, fault, state, expected verdict, notes). Labels come from how the clip was staged, not from the model.
-- Split by recording session: dev (tuning) and test (held out, untouched until final report).
+| Clip | Code | What it shows |
+|---|---|---|
+| `Healthy_01` | K7M4 | Healthy fill, about 25.5 s |
+| `Healthy_2` | K7M5 | Healthy fill, about 27 s |
+| `F1_faulty_01` | P4T9 | Blocked intake, fill about 52 s |
+| `f1_repaired_01_closeup` | R2C6 | Clean intake close-up |
+| `f1_repaired_01` | R2C6 | Repaired, fill about 33 s (battery fading) |
+| `adv_never_on_01` | T4M6 | Pump never switched on |
+| `adv_hidden_01` (label `adv_pump_hidden_01`) | S2I3 | Pump covered by the code note at the start |
+
+Times are estimates from frames; T4 measures them from the video. Labels live in `data/labels.csv` and come from how each clip was staged, not from a model.
 
 ## Safety
 
-- Low voltage only (≤ 6 V). Never connect to mains.
+- Low voltage only. The 9 V battery is above the pump's 3–6 V rating, so runs are kept under about a minute. Never connect to mains.
 - Run the pump under water only; dry running damages it.
-- Keep batteries and holder away from water.
+- Keep the battery and switch away from water.
 - All faults are staged and disclosed as staged in the demo and docs.

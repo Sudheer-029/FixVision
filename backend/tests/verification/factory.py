@@ -6,9 +6,9 @@ TOKEN = "K7Q2"
 FPS = 3
 CLIP_S = 40.0
 ON_T, OFF_T = 4.0, 34.0  # 30 s run
-FILL_START, FILL_MARK = 8.0, 28.0  # 20 s → 1.5 L/min
+FILL_START, FILL_MARK = 8.0, 28.0  # 20 s = healthy speed
 
-THRESHOLDS = Thresholds(version="test.1", baseline_lpm=1.5, flow_pass_lpm=1.2, flow_fail_lpm=0.9)
+THRESHOLDS = Thresholds(version="test.1", baseline_fill_s=20.0)  # pass ≤ 25 s, fail > 33.3 s
 
 
 def timeline(start: float = 0.0, end: float = CLIP_S) -> Timeline:
@@ -30,12 +30,10 @@ def healthy(fault: str = "F1", **overrides) -> JobEvidence:
         obs("switch_off_shown", True, t=[OFF_T]),
         obs("pump_running", True),
         obs("fill_start_t", FILL_START, t=[FILL_START]),
-        obs("fill_mark_t", FILL_MARK, t=[FILL_MARK]),
-        obs("drip_at_joint", False),
-        obs("power_source_shown", True),
+        obs("fill_line_t", FILL_MARK, t=[FILL_MARK]),
+        obs("leak_at_hose", False),
         obs("job_token_read", TOKEN, clip="closeup", t=[0.5]),
         obs("intake_clear", True, clip="closeup", t=[3.0]),
-        obs("joint_reseated_shown", True, clip="closeup", t=[3.0]),
     ]
     data = dict(
         job_id="job-1",
@@ -47,14 +45,14 @@ def healthy(fault: str = "F1", **overrides) -> JobEvidence:
         timelines={
             "test": {
                 "pump": timeline(),
-                "measuring jug": timeline(),
-                "hose joint": timeline(),
+                "jar": timeline(),
+                "hose": timeline(),
                 "water stream": timeline(ON_T + 0.5, OFF_T),
             },
             "closeup": {"intake": timeline(0.0, 5.0)},
         },
         fill_time_s=FILL_MARK - FILL_START,
-        conditions=Conditions(supply="fresh_aa_x4", head_cm=20, water_level_cm=8),
+        conditions=Conditions(supply="usb_5v", head_cm=20, water_level_cm=8),
     )
     data.update(overrides)
     return JobEvidence(**data)

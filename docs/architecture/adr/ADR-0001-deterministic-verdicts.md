@@ -5,7 +5,7 @@
 - **Pillars affected:** Reliability, Security, Operational excellence
 
 ## Context
-A model asked "does this look fixed?" can be fooled (pump switched off, joint hidden) and cannot be audited. Judges and service managers need to know why a job passed.
+A model asked "does this look fixed?" can be fooled (pump switched off, pump hidden) and cannot be audited. Judges and service managers need to know why a job passed.
 
 ## Decision
 Models return observations with confidence and frame references. A rule engine in our code applies the checks in `VERIFICATION_SPEC.md` and returns Passed / Failed / Inconclusive with reasons.

@@ -1,1 +1,9 @@
 clip_id,session,split,fault,state,expected_verdict,notes
+healthy_01,2026-11-01,dev,none,healthy,BASELINE,file Healthy_01.MOV; code K7M4; fill about 25.5 s; supply battery_9v
+healthy_02,2026-11-01,dev,none,healthy,BASELINE,file Healthy_2.MOV; code K7M5; fill about 27 s; supply battery_9v
+f1_faulty_01,2026-11-01,dev,F1,faulty,FAILED,file F1_faulty_01.MOV; code P4T9; intake mostly taped; fill about 52 s
+f1_repaired_01_closeup,2026-11-01,dev,F1,repaired,,file f1_repaired_01_closeup.MOV; code R2C6; clean intake close-up for f1_repaired_01
+f1_repaired_01,2026-11-01,dev,F1,repaired,PASSED_OR_INCONCLUSIVE,file f1_repaired_01.MOV; code R2C6; fill about 33 s on a fading battery; near the 80% pass line
+adv_never_on_01,2026-11-01,dev,F1,adversarial,INCONCLUSIVE,file adv_never_on_01.MOV; code T4M6; pump never switched on
+adv_pump_hidden_01,2026-11-01,dev,F1,adversarial,INCONCLUSIVE,file adv_hidden_01.MOV; code S2I3; code note covers the pump at the start
+adv_reused_01,2026-11-01,dev,F1,adversarial,INCONCLUSIVE,file Healthy_01.MOV submitted with job code R2C6; token mismatch

@@ -41,7 +41,7 @@ Daily spend check on the Billing page; `DAILY_SPEND_LIMIT_USD` enforced in the c
 - [x] Public GitHub repo created: https://github.com/Sudheer-029/FixVision (commit these docs)
 - [x] `scripts/smoke.py` calls each model once (2026-11-01, all 5 OK)
 - [ ] Rig assembled; 5 healthy baseline runs recorded; `config/rig_baseline.yaml`
-- [ ] `data/guides/pump_guide.md` written (our own words: symptoms, causes, steps, stop conditions for F1–F3)
+- [ ] `data/guides/pump_guide.md` written (our own words: symptoms, causes, steps, stop conditions for F1)
 - [ ] Ask in #office-hours: SAM 3.1 video limits for hackathon accounts; Muse Spark video token cost
 
 ## Task prompts for Claude Code
@@ -56,7 +56,7 @@ Use one prompt per session. Always attach the referenced docs.
 
 **T3 Verification engine** — "Read docs/VERIFICATION_SPEC.md and docs/components/verification-engine.md. Implement the Pydantic schema, the five checks and the verdict combiner as pure functions with table-driven tests covering every boundary and every adversarial case in §7. 100% branch coverage."
 
-**T4 Perception** — "Read docs/components/perception-sam.md and the SAM section of META_API_NOTES.md. Implement frame sampling with ffmpeg, SAM 3.1 concept prompts (and an optional joint point prompt) over the Responses API with streaming, parsing with meta-sam-parser, and presence timelines in seconds. Tests on saved stream fixtures."
+**T4 Perception** — "Read docs/components/perception-sam.md and the SAM section of META_API_NOTES.md. Implement frame sampling with ffmpeg, SAM 3.1 concept prompts (and an optional point prompt) over the Responses API with streaming, parsing with meta-sam-parser, and presence timelines in seconds. Tests on saved stream fixtures."
 
 **T5 Reasoning agent** — "Read docs/components/reasoning-agent.md. Implement triage, guidance and observe_test with JSON-schema outputs, prompt files, grounding in data/guides/pump_guide.md, and golden-file tests."
 

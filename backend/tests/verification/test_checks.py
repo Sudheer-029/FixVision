@@ -3,7 +3,7 @@
 import pytest
 
 from app.verification import checks, signals
-from app.verification.schema import Conditions, Timeline
+from app.verification.schema import Timeline
 from tests.verification.factory import (
     CLIP_S,
     OFF_T,
@@ -20,7 +20,7 @@ T = THRESHOLDS
 
 def fill(ev, start, mark, typed=None):
     ev = replace_obs(ev, "fill_start_t", value=start)
-    ev = replace_obs(ev, "fill_mark_t", value=mark)
+    ev = replace_obs(ev, "fill_line_t", value=mark)
     return ev.model_copy(update={"fill_time_s": mark - start if typed is None else typed})
 
 
@@ -86,8 +86,8 @@ C0_CASES = [
     ("not submerged", lambda ev: replace_obs(ev, "pump_submerged", value=False), "insufficient"),
     ("pump 2.0 s", lambda ev: with_timeline(ev, "pump", timeline(0, 2)), "pass"),
     ("pump 1.67 s", lambda ev: with_timeline(ev, "pump", timeline(0, 5 / 3)), "insufficient"),
-    ("joint SAM error", lambda ev: with_timeline(ev, "hose joint", None), "insufficient"),
-    ("jug absent", lambda ev: with_timeline(ev, "measuring jug", Timeline(times=[], interval_s=1)), "insufficient"),
+    ("hose SAM error", lambda ev: with_timeline(ev, "hose", None), "insufficient"),
+    ("jar absent", lambda ev: with_timeline(ev, "jar", Timeline(times=[], interval_s=1)), "insufficient"),
 ]  # fmt: skip
 
 
@@ -131,24 +131,24 @@ def test_c1(name, mutate, expected):
 
 
 # -- C2 ----------------------------------------------------------------------------
-# thresholds: pass ≥ 1.2 L/min (fill ≤ 25 s), fail < 0.9 L/min (fill > 33.3 s)
+# thresholds: healthy fill 20 s; pass ≥ 80% speed (fill ≤ 25 s), fail < 60% (fill > 33.3 s)
 
 C2_CASES = [
-    ("healthy 1.5 L/min", lambda ev: ev, "pass"),
-    ("exactly pass 1.2", lambda ev: fill(ev, 5.0, 30.0), "pass"),
+    ("healthy speed", lambda ev: ev, "pass"),
+    ("exactly 80%", lambda ev: fill(ev, 5.0, 30.0), "pass"),
     ("just below pass", lambda ev: fill(ev, 5.0, 30.1), "insufficient"),
-    ("just above fail 0.909", lambda ev: fill(no_off(ev), 5.0, 38.0), "insufficient"),
+    ("just above fail 61%", lambda ev: fill(no_off(ev), 5.0, 38.0), "insufficient"),
     ("just below fail", lambda ev: fill(no_off(ev), 5.0, 38.4), "fail"),
     ("fill start missing", lambda ev: replace_obs(ev, "fill_start_t", drop=True), "insufficient"),
-    ("fill mark low conf", lambda ev: replace_obs(ev, "fill_mark_t", confidence=0.6), "insufficient"),
-    ("fill mark bool", lambda ev: replace_obs(ev, "fill_mark_t", value=True), "insufficient"),
-    ("fill mark string", lambda ev: replace_obs(ev, "fill_mark_t", value="28"), "insufficient"),
+    ("fill line low conf", lambda ev: replace_obs(ev, "fill_line_t", confidence=0.6), "insufficient"),
+    ("fill line bool", lambda ev: replace_obs(ev, "fill_line_t", value=True), "insufficient"),
+    ("fill line string", lambda ev: replace_obs(ev, "fill_line_t", value="28"), "insufficient"),
     ("zero duration", lambda ev: fill(ev, 10.0, 10.0, typed=10), "insufficient"),
     ("start before switch-on", lambda ev: fill(ev, 3.0, 23.0), "insufficient"),
-    ("mark after switch-off", lambda ev: fill(ev, 15.0, 35.0), "insufficient"),
+    ("line after switch-off", lambda ev: fill(ev, 15.0, 35.0), "insufficient"),
     ("no run window", lambda ev: replace_obs(ev, "switch_on_shown", drop=True), "insufficient"),
-    ("jug SAM error", lambda ev: with_timeline(ev, "measuring jug", None), "insufficient"),
-    ("jug out of frame mid-fill", lambda ev: with_timeline(ev, "measuring jug", timeline(0, 14)), "insufficient"),
+    ("jar SAM error", lambda ev: with_timeline(ev, "jar", None), "insufficient"),
+    ("jar out of frame mid-fill", lambda ev: with_timeline(ev, "jar", timeline(0, 14)), "insufficient"),
     ("typed missing", lambda ev: ev.model_copy(update={"fill_time_s": None}), "insufficient"),
     ("typed zero", lambda ev: ev.model_copy(update={"fill_time_s": 0}), "insufficient"),
     ("typed +15% ok", lambda ev: ev.model_copy(update={"fill_time_s": 23.0}), "pass"),
@@ -165,7 +165,7 @@ def test_c2(name, mutate, expected):
 
 def test_c2_flow_uses_video_not_typed_time():
     r = checks.c2_flow(healthy(), T)
-    assert "1.50 L/min" in r.detail
+    assert "100% of healthy speed" in r.detail
     assert r.evidence == ["test@8.0", "test@28.0", "input:fill_time_s=20"]
 
 
@@ -173,17 +173,17 @@ def test_c2_flow_uses_video_not_typed_time():
 
 C3_CASES = [
     ("healthy", lambda ev: ev, "pass"),
-    ("drip in run", lambda ev: replace_obs(ev, "drip_at_joint", value=True, t=[12.0]), "fail"),
-    ("drip at switch-on", lambda ev: replace_obs(ev, "drip_at_joint", value=True, t=[ON_T]), "fail"),
-    ("drip only after off", lambda ev: replace_obs(ev, "drip_at_joint", value=True, t=[36.0]), "insufficient"),
-    ("drip no times", lambda ev: replace_obs(ev, "drip_at_joint", value=True, t=[]), "insufficient"),
-    ("drip low conf", lambda ev: replace_obs(ev, "drip_at_joint", value=True, t=[12.0], confidence=0.5), "insufficient"),
-    ("drip but never switched on", lambda ev: replace_obs(replace_obs(ev, "drip_at_joint", value=True, t=[12.0]), "switch_on_shown", drop=True), "insufficient"),
-    ("joint 5.0 s", lambda ev: with_timeline(ev, "hose joint", timeline(10, 15)), "pass"),
-    ("joint 4.67 s", lambda ev: with_timeline(ev, "hose joint", timeline(10, 10 + 14 / 3)), "insufficient"),
-    ("joint SAM error", lambda ev: with_timeline(ev, "hose joint", None), "insufficient"),
-    ("joint hidden in run", lambda ev: with_timeline(ev, "hose joint", timeline(0, 3)), "insufficient"),
-    ("drip unobserved", lambda ev: replace_obs(ev, "drip_at_joint", drop=True), "insufficient"),
+    ("drip in run", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[12.0]), "fail"),
+    ("drip at switch-on", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[ON_T]), "fail"),
+    ("drip only after off", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[36.0]), "insufficient"),
+    ("drip no times", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[]), "insufficient"),
+    ("drip low conf", lambda ev: replace_obs(ev, "leak_at_hose", value=True, t=[12.0], confidence=0.5), "insufficient"),
+    ("drip but never switched on", lambda ev: replace_obs(replace_obs(ev, "leak_at_hose", value=True, t=[12.0]), "switch_on_shown", drop=True), "insufficient"),
+    ("hose 5.0 s", lambda ev: with_timeline(ev, "hose", timeline(10, 15)), "pass"),
+    ("hose 4.67 s", lambda ev: with_timeline(ev, "hose", timeline(10, 10 + 14 / 3)), "insufficient"),
+    ("hose SAM error", lambda ev: with_timeline(ev, "hose", None), "insufficient"),
+    ("hose hidden in run", lambda ev: with_timeline(ev, "hose", timeline(0, 3)), "insufficient"),
+    ("leak unobserved", lambda ev: replace_obs(ev, "leak_at_hose", drop=True), "insufficient"),
 ]  # fmt: skip
 
 
@@ -199,10 +199,6 @@ def closeup_token(ev, value):
     return replace_obs(ev, "job_token_read", clip="closeup", value=value)
 
 
-def supply(ev, s):
-    return ev.model_copy(update={"conditions": Conditions(supply=s)})
-
-
 C4_CASES = [
     ("F1 healthy", "F1", lambda ev: ev, "pass"),
     ("F1 still blocked", "F1", lambda ev: replace_obs(ev, "intake_clear", clip="closeup", value=False), "fail"),
@@ -213,15 +209,6 @@ C4_CASES = [
     ("F1 intake_clear missing", "F1", lambda ev: replace_obs(ev, "intake_clear", clip="closeup", drop=True), "insufficient"),
     ("F1 close-up token mismatch", "F1", lambda ev: closeup_token(ev, "AAAA"), "insufficient"),
     ("F1 test-clip token is not enough", "F1", lambda ev: replace_obs(ev, "job_token_read", clip="closeup", drop=True), "insufficient"),
-    ("F2 healthy", "F2", lambda ev: ev, "pass"),
-    ("F2 not reseated", "F2", lambda ev: replace_obs(ev, "joint_reseated_shown", clip="closeup", value=False), "insufficient"),
-    ("F2 close-up token mismatch", "F2", lambda ev: closeup_token(ev, "AAAA"), "insufficient"),
-    ("F3 fresh", "F3", lambda ev: ev, "pass"),
-    ("F3 usb", "F3", lambda ev: supply(ev, "usb_5v"), "pass"),
-    ("F3 used batteries", "F3", lambda ev: supply(ev, "used_aa_x4"), "fail"),
-    ("F3 supply missing", "F3", lambda ev: supply(ev, None), "insufficient"),
-    ("F3 source not shown", "F3", lambda ev: replace_obs(ev, "power_source_shown", value=False), "insufficient"),
-    ("F3 needs no close-up", "F3", lambda ev: closeup_token(ev, None), "pass"),
 ]  # fmt: skip
 
 

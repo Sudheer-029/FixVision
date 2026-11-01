@@ -7,7 +7,7 @@
 | Method | Path | Purpose |
 |---|---|---|
 | POST | `/jobs` | Create job (equipment, data_class) → job id, token |
-| POST | `/jobs/{id}/media` | Upload clip or audio with `kind` (`symptom`, `check`, `closeup` (post-repair, F1/F2), `test`, `voice`) |
+| POST | `/jobs/{id}/media` | Upload clip or audio with `kind` (`symptom`, `check`, `closeup` (post-repair), `test`, `voice`) |
 | POST | `/jobs/{id}/triage` | Run reasoning on symptom → causes + requested check |
 | POST | `/jobs/{id}/guidance` | Guidance for the confirmed cause |
 | POST | `/jobs/{id}/test` | Submit test measurements and conditions; starts verification |

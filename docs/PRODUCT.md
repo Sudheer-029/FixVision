@@ -9,7 +9,7 @@ FixVision is an evidence-backed repair verification system: it guides a technici
 ## Problem
 
 - Service managers sign off repairs they did not see. Job reports are often a photo and a note.
-- A "fixed" photo can be misleading: a leak disappears when the pump is off; a motor spins but under-performs.
+- A "fixed" photo can be misleading: a half-blocked pump still runs and still pumps, just slowly.
 - Repeat visits and disputed reports cost time and money. *(Hypothesis to validate, not a measured saving.)*
 
 ## Primary user
@@ -21,14 +21,14 @@ FixVision is an evidence-backed repair verification system: it guides a technici
 1. Technician starts a job, identifies the equipment, records the symptom and describes it by voice.
 2. FixVision highlights the relevant component and asks for one targeted diagnostic check.
 3. FixVision gives guidance from the approved pump guide, step by step, with technician approval and stop conditions.
-4. After the repair, the technician runs the guided functional test (timed flow + leak check while running).
+4. After the repair, the technician runs the guided functional test (fill time to a marked line, compared with the healthy pump, plus a leak check while running).
 5. FixVision issues Passed / Failed / Inconclusive with a service record.
 6. The manager reviews and approves; approved records enter the case library.
 
 ## Why Meta's models
 
 - **Muse Spark** reasons over video, speech and documents in one model and returns structured observations.
-- **SAM 3.1** turns "look at the joint" into a tracked, measurable region across frames.
+- **SAM 3.1** turns "look at the intake" into a tracked, measurable region across frames.
 - **Voice Transcribe** handles Hindi and English with code-switching.
 
 ## Out of scope (hackathon)

@@ -19,7 +19,7 @@ How to build FixVision with Claude Code, one step at a time. Each step = one sla
 | — | Fri 9:30 PM | Fireworks livestream | Base model id noted in `.env` | — |
 | 4 | Sat AM | Build rig, record baseline (RIG.md) | `config/rig_baseline.yaml` filled; 2–3 clips per fault | Pump parts |
 | 5 | Sat | `/t4-perception` | `scripts/perceive.py` prints signals for a real clip | Clips |
-| 6 | Sat | `/t5-reasoning` | `scripts/run_clip.py` gives correct verdicts for F1–F3 repaired and faulty | — |
+| 6 | Sat | `/t5-reasoning` | `scripts/run_clip.py` gives correct verdicts for the recorded F1 faulty, repaired and trick clips | — |
 | 7 | Sat PM | `/t6-api` | API tests pass, happy + Inconclusive paths | — |
 | 7b | Sat PM | Record all trial clips (RIG.md recording plan, ~80) and label them in `data/labels.csv` | Every clip labeled, dev/test split by session | Rig |
 | 8 | Sun | `/t7-web-app` | Full flow on your phone | Laptop and phone on same Wi-Fi, or deploy |

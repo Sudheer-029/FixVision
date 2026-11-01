@@ -39,17 +39,17 @@ Service manager (browser)  ──HTTPS──> FixVision ──HTTPS──> Baset
 
 ```
 CREATED → SYMPTOM_CAPTURED → TRIAGED → CHECK_REQUESTED → CHECK_CAPTURED
-        → GUIDANCE_ISSUED → REPAIR_REPORTED → [CLOSEUP_CAPTURED, F1/F2 only]
+        → GUIDANCE_ISSUED → REPAIR_REPORTED → CLOSEUP_CAPTURED
         → TEST_CAPTURED → VERIFYING
         → PASSED | FAILED | INCONCLUSIVE → REVIEWED (approved | rejected)
-FAILED or INCONCLUSIVE → (re-record or further repair) → CLOSEUP_CAPTURED (F1/F2) or TEST_CAPTURED
+FAILED or INCONCLUSIVE → (re-record or further repair) → CLOSEUP_CAPTURED
 ```
 
 ## 5. Data flow for verification
 
-1. Test clip (+ post-repair close-up for F1/F2) uploaded → ffmpeg samples frames at `SAM_SAMPLE_FPS` and extracts audio.
-2. Perception (in parallel with 3): SAM 3.1 concept prompts (`pump`, `measuring jug`, `hose joint`, `water stream`; `intake` on the F1 close-up) on the test clip → presence timelines in seconds ([perception-sam](../components/perception-sam.md)).
-3. Reasoning (in parallel with 2): Muse Spark receives the test clip and close-up (Files API) + check list and returns the observations in [VERIFICATION_SPEC §4.1](../VERIFICATION_SPEC.md), each with confidence and times in seconds (including `fill_start_t` / `fill_mark_t`).
+1. Test clip (+ post-repair close-up) uploaded → ffmpeg samples frames at `SAM_SAMPLE_FPS` and extracts audio.
+2. Perception (in parallel with 3): SAM 3.1 concept prompts (`pump`, `jar`, `hose`, `water stream`; `intake` on the close-up) on the test clip → presence timelines in seconds ([perception-sam](../components/perception-sam.md)).
+3. Reasoning (in parallel with 2): Muse Spark receives the test clip and close-up (Files API) + check list and returns the observations in [VERIFICATION_SPEC §4.1](../VERIFICATION_SPEC.md), each with confidence and times in seconds (including `fill_start_t` / `fill_line_t`).
 4. Measurement: technician-entered fill time (cross-check only, ADR-0007) and conditions.
 5. Verification engine derives windowed signals and applies [VERIFICATION_SPEC](../VERIFICATION_SPEC.md) → verdict.
 6. Service record generated; manager reviews.

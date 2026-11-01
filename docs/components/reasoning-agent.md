@@ -8,7 +8,7 @@
 |---|---|---|
 | `triage` | Symptom clip (file_id), transcript, equipment, retrieved approved cases | `causes[] {fault_id, likelihood, evidence[]}`, `requested_check {instruction, component_concept}` |
 | `guidance` | Confirmed cause, approved pump guide section | `stop_conditions[]`, `steps[] {text, component_concept, requires_approval}` |
-| `observe_test` | Test clip (+ close-up clip for F1/F2), check list, SAM signals | `observations[] {id, clip, value, confidence, t[]}`, exactly the list in [VERIFICATION_SPEC §4.1](../VERIFICATION_SPEC.md); `t[]` in seconds from that clip's start |
+| `observe_test` | Test clip (+ post-repair close-up), check list, SAM signals | `observations[] {id, clip, value, confidence, t[]}`, exactly the list in [VERIFICATION_SPEC §4.1](../VERIFICATION_SPEC.md); `t[]` in seconds from that clip's start |
 
 ## Rules
 - Guidance only from `data/guides/pump_guide.md` and approved cases; cite section ids.
