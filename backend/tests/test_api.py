@@ -210,6 +210,20 @@ def test_upload_names_never_reach_the_disk_and_types_are_limited(rig):
     assert len(stored) == 1 and "evil" not in stored[0]
 
 
+def test_oversized_upload_is_refused_before_parsing(rig, monkeypatch):
+    monkeypatch.setattr("app.api.jobs.MAX_UPLOAD_BYTES", 0)
+    monkeypatch.setattr("app.main.MULTIPART_OVERHEAD", 10)
+    job_id = rig.api.post("/jobs", json={}).json()["id"]
+    assert rig.upload(job_id, "symptom").status_code == 413
+    assert rig.job(job_id)["state"] == "CREATED"
+
+
+def test_upload_without_content_length_is_refused(rig):
+    job_id = rig.api.post("/jobs", json={}).json()["id"]
+    r = rig.api.post(f"/jobs/{job_id}/media", content=iter([b"x"]))
+    assert r.status_code == 411
+
+
 def test_repeated_step_is_not_run_twice(rig):
     job_id = rig.api.post("/jobs", json={}).json()["id"]
     rig.upload(job_id, "symptom")
@@ -230,7 +244,7 @@ def test_model_failure_marks_the_step_and_a_retry_works(rig):
     rig.drain()
     job = rig.job(job_id)
     assert job["state"] == "SYMPTOM_CAPTURED"
-    assert job["steps"][0]["status"] == "error" and "timed out" in job["steps"][0]["error"]
+    assert job["steps"][0]["status"] == "error" and job["steps"][0]["error"] == "TimeoutError"
 
     rig.client.fail = False
     rig.api.post(f"/jobs/{job_id}/triage", json={})

@@ -26,13 +26,13 @@ Uploading the post-repair close-up from `GUIDANCE_ISSUED` also records `REPAIR_R
 The trace reads `cost_ledger` (written by `MetaClient`, a separate SQLite file) and places each call under the step whose time window contains it.
 
 ## Failure modes
-Model timeout or any step exception → step marked `error`, the job stays in its state and the same `POST` retries it. A restart marks unfinished steps `error`, so they can be retried (assumes one API process). No verdict is written unless verification ran.
+Model timeout or any step exception → step marked `error`, the job stays in its state and the same `POST` retries it. API clients see only the exception type; details stay in the server log. A restart marks unfinished steps `error`, so they can be retried (assumes one API process). No verdict is written unless verification ran.
 
 ## Storage
-Tables in `app/jobs/models.py`: jobs, media, steps, observations, verdicts, records. Database and uploads live under `data/private/` (git-ignored). Upload limits: 300 MB; `.mp4 .mov .webm .m4a .wav`; the client's file name is never used on disk.
+Tables in `app/jobs/models.py`: jobs, media, steps, observations, verdicts, records. Database and uploads live under `data/private/` (git-ignored). Upload limits: 300 MB, refused from `Content-Length` before the body is parsed; `.mp4 .mov .webm .m4a .wav`; the client's file name is never used on disk.
 
 ## Known limits
-No authentication yet: the job id is the only access control, so keep the API private.
+No authentication yet: the job id is the only access control and anyone holding it can approve a review, so the API must stay private until login and a manager role exist.
 
 ## Tests
 State-transition unit tests; API tests with mocked model clients.

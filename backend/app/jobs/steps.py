@@ -94,11 +94,11 @@ def run_step(deps: Deps, job_id: str, step: str, fn: Callable[[Job], Outcome]) -
             row.result_json = json.dumps(result)
             s.add(row)
             s.commit()
-    except Exception as e:  # any failure leaves the step retryable (orchestrator.md)
+    except Exception as e:  # any failure leaves the step retryable; details stay in the log
         log.exception("step %s failed for job %s", step, job_id)
         with Session(deps.engine) as s:
             row = s.get(Step, (job_id, step))
-            row.status, row.finished_at, row.error = "error", now(), str(e)[:500]
+            row.status, row.finished_at, row.error = "error", now(), type(e).__name__
             s.add(row)
             s.commit()
 
