@@ -25,9 +25,11 @@ class Settings(BaseSettings):
 
     guard_enabled: bool = True
     media_retention_days: int = 7
-    rig_baseline_path: str = "../config/rig_baseline.yaml"
+    rig_baseline_path: str = str(REPO_ROOT / "config" / "rig_baseline.yaml")
     cache_dir: Path = REPO_ROOT / "data" / "cache"
     ledger_path: Path = REPO_ROOT / "data" / "cache" / "ledger.sqlite"
+    db_path: Path = REPO_ROOT / "data" / "private" / "fixvision.sqlite"
+    jobs_dir: Path = REPO_ROOT / "data" / "private" / "jobs"  # uploaded media, git-ignored
 
 
 settings = Settings()

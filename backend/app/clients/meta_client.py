@@ -112,7 +112,7 @@ def with_retries[T](
 class Ledger:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
-        self._db = sqlite3.connect(path)
+        self._db = sqlite3.connect(path, check_same_thread=False)  # created off the worker thread
         self._db.execute(
             """CREATE TABLE IF NOT EXISTS cost_ledger (
                 ts TEXT NOT NULL, job_id TEXT, component TEXT, model TEXT NOT NULL,

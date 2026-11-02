@@ -23,6 +23,12 @@ class Collected:
     sam_cost_usd: float
 
 
+def model_copy(cfg: Settings, clip: Path) -> Path:
+    """The 720p H.264 copy sent to Muse Spark."""
+    out = cfg.cache_dir / "perception" / f"{Cache.key(file_sha256(clip), 'model')}.mp4"
+    return frames.for_model(clip, out)
+
+
 def collect_evidence(
     client: MetaClient,
     cfg: Settings,
@@ -41,11 +47,8 @@ def collect_evidence(
         client, test_clip, closeup_clip, cfg.sam_sample_fps, work, job_id=job_id
     )
 
-    def model_copy(clip: Path) -> Path:
-        return frames.for_model(clip, work / f"{Cache.key(file_sha256(clip), 'model')}.mp4")
-
     observations: list[Observation] = reasoning.observe_test(
-        client, model, model_copy(test_clip), "test", job_id
+        client, model, model_copy(cfg, test_clip), "test", job_id
     )
     if (box := boxes.get("jar")) is not None:  # no jar box → no fill times → C2 insufficient
         out = work / f"{Cache.key(file_sha256(test_clip), box, FILL_FPS)}-jar"
@@ -53,7 +56,7 @@ def collect_evidence(
         observations += reasoning.observe_fill(client, model, jar, FILL_FPS, job_id)
     if closeup_clip is not None:
         observations += reasoning.observe_test(
-            client, model, model_copy(closeup_clip), "closeup", job_id
+            client, model, model_copy(cfg, closeup_clip), "closeup", job_id
         )
     evidence = JobEvidence(
         job_id=job_id,

@@ -18,8 +18,21 @@
 ## State machine
 See `ARCHITECTURE.md` §4. Transitions are validated; illegal transitions return `409`.
 
+Uploading the post-repair close-up from `GUIDANCE_ISSUED` also records `REPAIR_REPORTED`. Re-uploading a clip in the state it produced replaces it (the latest clip of each kind is used).
+
+## Worker and steps
+`triage`, `guidance:<fault>` and `verify:<test media id>` run on one in-process worker thread, so `POST` returns `202` and the client polls `GET /jobs/{id}`. Each step is a row keyed by `job_id + step`; a queued, running or done step is never started again. Model calls hold no database session, and a step's result, rows and state change commit together. Each new test recording is its own `verify` attempt.
+
+The trace reads `cost_ledger` (written by `MetaClient`, a separate SQLite file) and places each call under the step whose time window contains it.
+
 ## Failure modes
-Model timeout → step marked `error`, user can retry; worker crash → step resumable (idempotent by `job_id + step`).
+Model timeout or any step exception → step marked `error`, the job stays in its state and the same `POST` retries it. A restart marks unfinished steps `error`, so they can be retried (assumes one API process). No verdict is written unless verification ran.
+
+## Storage
+Tables in `app/jobs/models.py`: jobs, media, steps, observations, verdicts, records. Database and uploads live under `data/private/` (git-ignored). Upload limits: 300 MB; `.mp4 .mov .webm .m4a .wav`; the client's file name is never used on disk.
+
+## Known limits
+No authentication yet: the job id is the only access control, so keep the API private.
 
 ## Tests
 State-transition unit tests; API tests with mocked model clients.
