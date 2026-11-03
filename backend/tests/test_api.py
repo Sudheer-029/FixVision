@@ -26,10 +26,11 @@ class FakeClient:
     """Answers by schema name and writes the real ledger, as MetaClient does."""
 
     def __init__(self, ledger: Ledger):
-        self.ledger, self.calls, self.fail = ledger, [], False
+        self.ledger, self.calls, self.sent, self.fail = ledger, [], [], False
 
     def respond(self, model, input, schema=None, schema_name="", job_id=None, component="", **_):
         self.calls.append(component)
+        self.sent.append(input)
         if self.fail:
             raise TimeoutError("model timed out")
         name = {"triage": "triage_slow_fill.json", "guidance": "guidance_f1.json"}[component]
@@ -39,6 +40,11 @@ class FakeClient:
 
     def upload_file(self, path):
         return "file-123"
+
+    def transcribe(self, wav, keywords=(), job_id=None):
+        result = CallResult(text="पानी धीरे आ रहा है", cost_usd=0.001, latency_ms=50)
+        self.ledger.record(job_id=job_id, component="voice", model="voice", result=result)
+        return result
 
 
 class Rig:
@@ -61,7 +67,12 @@ class Rig:
         self.tracks = {}
         self.clip_bytes = b"video-bytes"
         deps = Deps(
-            cfg, make_engine(cfg.db_path), self.client, self.collect, lambda _cfg, clip: clip
+            cfg,
+            make_engine(cfg.db_path),
+            self.client,
+            self.collect,
+            lambda _cfg, clip: clip,
+            lambda _cfg, audio: audio,
         )
         self.app = create_app(deps)
         self.api = TestClient(self.app)
@@ -239,6 +250,43 @@ def test_broken_evidence_frame_does_not_block_the_verdict(rig):
 def test_unknown_job_is_404(rig):
     assert rig.api.get("/jobs/nope").status_code == 404
     assert rig.api.get("/jobs/nope/trace").status_code == 404
+
+
+def test_voice_note_reaches_triage_and_the_trace(rig):
+    job_id = rig.api.post("/jobs", json={}).json()["id"]
+    rig.upload(job_id, "symptom")
+    assert rig.upload(job_id, "voice", "note.m4a").json()["state"] == "SYMPTOM_CAPTURED"
+    rig.api.post(f"/jobs/{job_id}/triage", json={"transcript": "typed note"})
+    rig.drain()
+    assert rig.job(job_id)["state"] == "CHECK_REQUESTED"
+    triage = rig.job(job_id)["steps"][0]["result"]
+    assert triage["transcript"] == "typed note\nपानी धीरे आ रहा है"
+    sent = json.dumps(rig.client.sent, ensure_ascii=False)
+    assert "पानी धीरे" in sent and "typed note" in sent
+    calls = rig.api.get(f"/jobs/{job_id}/trace").json()["steps"][0]["calls"]
+    assert [c["component"] for c in calls] == ["voice", "triage"]
+
+
+def test_service_record_holds_every_field(rig):
+    job_id = rig.to_test_captured()
+    assert rig.api.get(f"/jobs/{job_id}/record").status_code == 404  # no verdict yet
+    rig.run_test(job_id)
+    rec = rig.api.get(f"/jobs/{job_id}/record").json()
+    assert rec["verdict"] == "PASSED" and rec["fault_hypothesis"] == "F1"
+    assert rec["measurements"] == {
+        "fill_time_video_s": 20.0,
+        "fill_time_typed_s": 20.0,
+        "run_s": 30.0,
+    }
+    assert rec["conditions"]["supply"] == "usb_5v" and rec["checks"] and rec["observations"]
+    assert rec["guide_sections"] and rec["thresholds_version"] == "t"
+    assert rec["models"]["reasoning"] and rec["created_at"] and rec["verified_at"]
+    assert rec["review"]["decision"] is None
+    assert {m["kind"] for m in rec["media"]} == {"symptom", "check", "closeup", "test"}
+
+    rig.api.post(f"/jobs/{job_id}/review", json={"approved": False, "note": "redo"})
+    review = rig.api.get(f"/jobs/{job_id}/record").json()["review"]
+    assert (review["decision"], review["note"]) == ("rejected", "redo") and review["reviewed_at"]
 
 
 def test_upload_names_never_reach_the_disk_and_types_are_limited(rig):

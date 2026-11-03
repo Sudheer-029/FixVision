@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { postJson } from "@/lib/api";
 import { useJob } from "@/lib/useJob";
+import { cleanReason } from "@/lib/verdict";
 
 export default function ReviewPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +38,7 @@ export default function ReviewPage() {
           </p>
           {job.verdict.reasons.map((r) => (
             <p key={r} className="muted">
-              {r.replace(/^C\d_\w+: /, "")}
+              {cleanReason(r)}
             </p>
           ))}
           <label>

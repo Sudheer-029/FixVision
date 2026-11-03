@@ -31,6 +31,12 @@ def model_copy(cfg: Settings, clip: Path) -> Path:
     return frames.for_model(clip, out)
 
 
+def voice_wav(cfg: Settings, audio: Path) -> Path:
+    """The mono 24 kHz WAV Voice Transcribe accepts."""
+    out = cfg.cache_dir / "perception" / f"{Cache.key(file_sha256(audio), 'wav')}.wav"
+    return frames.extract_audio(audio, out)
+
+
 def collect_evidence(
     client: MetaClient,
     cfg: Settings,

@@ -7,7 +7,7 @@ const clip = (name: string) => ({
 });
 
 async function choose(page: Page, name: string) {
-  await page.setInputFiles('input[type="file"]', clip(name));
+  await page.getByLabel("Video file").setInputFiles(clip(name));
 }
 
 test("a job goes from new to reviewed", async ({ page }) => {
@@ -16,10 +16,12 @@ test("a job goes from new to reviewed", async ({ page }) => {
   await expect(page.getByTestId("token")).toHaveText(/^[A-HJ-NP-Z2-9]{4}$/);
 
   await choose(page, "symptom.mp4");
-  await page.getByLabel("What is wrong?").fill("water comes out slowly");
+  await page.getByLabel("Audio file").setInputFiles(clip("voice.m4a"));
+  await page.getByLabel("Or type what is wrong").fill("water comes out slowly");
   await page.getByRole("button", { name: "Find likely causes" }).click();
 
   await expect(page.getByRole("heading", { name: "2. Run this check" })).toBeVisible();
+  await expect(page.getByText("पानी धीरे आ रहा है")).toBeVisible();
   await choose(page, "check.mp4");
   await page.getByRole("button", { name: "Upload check" }).click();
 
@@ -40,6 +42,10 @@ test("a job goes from new to reviewed", async ({ page }) => {
     page.getByRole("heading", { name: "Passed these checks under these conditions" }),
   ).toBeVisible();
   await expect(page.getByText("Not enough evidence")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Service record" }).click();
+  await expect(page.getByRole("heading", { name: "Service record" })).toBeVisible();
+  await page.goBack();
 
   await page.getByRole("link", { name: "Model calls and cost" }).click();
   await expect(page.getByRole("heading", { name: "triage" })).toBeVisible();

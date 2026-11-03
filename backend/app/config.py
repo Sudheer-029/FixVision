@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     fireworks_base_url: str = "https://api.fireworks.ai/inference/v1"
     fireworks_base_model: str = ""
 
-    guard_enabled: bool = True
     media_retention_days: int = 7
     rig_baseline_path: str = str(REPO_ROOT / "config" / "rig_baseline.yaml")
     cache_dir: Path = REPO_ROOT / "data" / "cache"

@@ -8,6 +8,7 @@ type Props = {
   onFile: (file: File | null) => void;
   /** Shown while recording; gets the seconds recorded so far. */
   guide?: (seconds: number) => ReactNode;
+  audioOnly?: boolean;
 };
 
 function canRecord() {
@@ -17,7 +18,7 @@ function canRecord() {
 }
 
 /** Records in the browser where it can; a file input is always there (and the only way on HTTP). */
-export function Capture({ label, file, onFile, guide }: Props) {
+export function Capture({ label, file, onFile, guide, audioOnly = false }: Props) {
   const [supported, setSupported] = useState(false);
   const [seconds, setSeconds] = useState<number | null>(null);
   const [problem, setProblem] = useState("");
@@ -40,18 +41,18 @@ export function Capture({ label, file, onFile, guide }: Props) {
   async function start() {
     setProblem("");
     try {
-      const media = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: true,
-      });
+      const media = await navigator.mediaDevices.getUserMedia(
+        audioOnly ? { audio: true } : { video: { facingMode: "environment" }, audio: true },
+      );
       stream.current = media;
-      const type = MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" : "video/webm";
+      const base = audioOnly ? "audio" : "video";
+      const type = MediaRecorder.isTypeSupported(`${base}/mp4`) ? `${base}/mp4` : `${base}/webm`;
       const rec = new MediaRecorder(media, { mimeType: type });
       const chunks: Blob[] = [];
       rec.ondataavailable = (e) => chunks.push(e.data);
       rec.onstop = () => {
         media.getTracks().forEach((t) => t.stop());
-        const ext = type === "video/mp4" ? "mp4" : "webm";
+        const ext = type.endsWith("mp4") ? "mp4" : "webm";
         onFile(new File(chunks, `clip.${ext}`, { type }));
       };
       recorder.current = rec;
@@ -63,7 +64,7 @@ export function Capture({ label, file, onFile, guide }: Props) {
         if (video.current) video.current.srcObject = media;
       });
     } catch {
-      setProblem("The camera is not available here. Choose a video file instead.");
+      setProblem("Recording is not available here. Choose a file instead.");
     }
   }
 
@@ -77,7 +78,7 @@ export function Capture({ label, file, onFile, guide }: Props) {
       <p className="field-label">{label}</p>
       {recording ? (
         <>
-          <video ref={video} className="preview" autoPlay muted playsInline />
+          {!audioOnly && <video ref={video} className="preview" autoPlay muted playsInline />}
           <p className="timer" role="timer">
             {seconds} s
           </p>
@@ -90,14 +91,15 @@ export function Capture({ label, file, onFile, guide }: Props) {
         <div className="capture-actions">
           {supported && (
             <button type="button" className="secondary" onClick={() => void start()}>
-              Record video
+              {audioOnly ? "Record voice" : "Record video"}
             </button>
           )}
           <label className="file">
-            Choose a video file
+            {audioOnly ? "Choose an audio file" : "Choose a video file"}
             <input
               type="file"
-              accept="video/*,.mov,.mp4,.webm"
+              aria-label={audioOnly ? "Audio file" : "Video file"}
+              accept={audioOnly ? "audio/*,.m4a,.wav,.webm,.mp4" : "video/*,.mov,.mp4,.webm"}
               onChange={(e) => onFile(e.target.files?.[0] ?? null)}
             />
           </label>

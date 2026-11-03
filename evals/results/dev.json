@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "trials": 5,
+    "correct": 4,
+    "false_passed": 0,
+    "inconclusive": 5,
+    "latency_p50_s": 154.8,
+    "latency_max_s": 222.7,
+    "cost_per_job_usd": 0.105
+  },
+  "trials": [
+    {
+      "clip_id": "f1_faulty_01",
+      "state": "faulty",
+      "expected": "FAILED",
+      "test": "F1_faulty_01.MOV",
+      "closeup": null,
+      "token": "P4T9",
+      "fill_time_s": 52.0,
+      "verdict": "INCONCLUSIVE",
+      "correct": false,
+      "reasons": [
+        "Preconditions not met: pump not shown submerged"
+      ],
+      "video_fill_s": 51.0,
+      "latency_s": 156.5,
+      "cost_usd": 0.1341
+    },
+    {
+      "clip_id": "f1_repaired_01",
+      "state": "repaired",
+      "expected": "PASSED_OR_INCONCLUSIVE",
+      "test": "f1_repaired_01.MOV",
+      "closeup": "f1_repaired_01_closeup.MOV",
+      "token": "R2C6",
+      "fill_time_s": 33.0,
+      "verdict": "INCONCLUSIVE",
+      "correct": true,
+      "reasons": [
+        "C2_flow: 76% of healthy speed (fill 34.0 s, typed 33.0 s, healthy 26.0 s) vs pass 80%, fail below 60% (between thresholds)"
+      ],
+      "video_fill_s": 34.0,
+      "latency_s": 222.7,
+      "cost_usd": 0.1185
+    },
+    {
+      "clip_id": "adv_never_on_01",
+      "state": "adversarial",
+      "expected": "INCONCLUSIVE",
+      "test": "adv_never_on_01.MOV",
+      "closeup": null,
+      "token": "T4M6",
+      "fill_time_s": null,
+      "verdict": "INCONCLUSIVE",
+      "correct": true,
+      "reasons": [
+        "C1_running: Switch-on not shown",
+        "C2_flow: Fill start or water reaching the fill line not seen in the test clip",
+        "C4_cause_addressed: Close-up job token not read or does not match this job"
+      ],
+      "video_fill_s": null,
+      "latency_s": 79.3,
+      "cost_usd": 0.0554
+    },
+    {
+      "clip_id": "adv_pump_hidden_01",
+      "state": "adversarial",
+      "expected": "INCONCLUSIVE",
+      "test": "adv_hidden_01.MOV",
+      "closeup": null,
+      "token": "S2I3",
+      "fill_time_s": null,
+      "verdict": "INCONCLUSIVE",
+      "correct": true,
+      "reasons": [
+        "Preconditions not met: job token not read or does not match (possible reused video); pump not shown submerged"
+      ],
+      "video_fill_s": 47.0,
+      "latency_s": 154.8,
+      "cost_usd": 0.1344
+    },
+    {
+      "clip_id": "adv_reused_01",
+      "state": "adversarial",
+      "expected": "INCONCLUSIVE",
+      "test": "Healthy_01.MOV",
+      "closeup": null,
+      "token": "R2C6",
+      "fill_time_s": null,
+      "verdict": "INCONCLUSIVE",
+      "correct": true,
+      "reasons": [
+        "Preconditions not met: job token not read or does not match (possible reused video)"
+      ],
+      "video_fill_s": 26.0,
+      "latency_s": 105.9,
+      "cost_usd": 0.0837
+    }
+  ]
+}

@@ -31,7 +31,7 @@ from app.jobs.models import (
     now,
 )
 from app.jobs.state import State, check
-from app.pipeline import collect_evidence, evidence_frames, model_copy
+from app.pipeline import collect_evidence, evidence_frames, model_copy, voice_wav
 from app.verification.engine import verify
 from app.verification.schema import Conditions
 from app.verification.thresholds import load_thresholds
@@ -48,6 +48,7 @@ class Deps:
     client: Any
     collect: Callable[..., Any] = field(default=collect_evidence)
     prepare: Callable[[Settings, Path], Path] = field(default=model_copy)
+    to_wav: Callable[[Settings, Path], Path] = field(default=voice_wav)
 
 
 @cache
@@ -113,16 +114,24 @@ def run_step(deps: Deps, job_id: str, step: str, fn: Callable[[Job], Outcome]) -
             s.commit()
 
 
-def triage(deps: Deps, symptom_path: str, transcript: str, job: Job) -> Outcome:
+VOICE_KEYWORDS = ("pump", "hose", "flow", "leak")
+
+
+def triage(deps: Deps, symptom_path: str, voice_path: str | None, typed: str, job: Job) -> Outcome:
     model = reasoning.model_for(deps.cfg, job.data_class)
     clip = deps.prepare(deps.cfg, Path(symptom_path))
+    heard = ""
+    if voice_path:
+        wav = deps.to_wav(deps.cfg, Path(voice_path))
+        heard = deps.client.transcribe(wav, keywords=VOICE_KEYWORDS, job_id=job.id).text
+    transcript = "\n".join(part for part in (typed.strip(), heard.strip()) if part)
     t = reasoning.triage(deps.client, model, clip, transcript, job.id)
 
     def apply(s: Session, j: Job) -> None:
         advance(j, State.TRIAGED, State.CHECK_REQUESTED)
         s.add(j)
 
-    return t.model_dump(), apply
+    return t.model_dump() | {"transcript": transcript}, apply
 
 
 def guidance(deps: Deps, fault: str, job: Job) -> Outcome:
@@ -179,7 +188,12 @@ def verify_job(
         advance(j, State(verdict.verdict))
         s.add(j)
 
-    return {"verdict": verdict.verdict, "sam_cost_usd": collected.sam_cost_usd}, apply
+    result = {
+        "verdict": verdict.verdict,
+        "sam_cost_usd": collected.sam_cost_usd,
+        "fill_time_s": fill_time_s,
+    }
+    return result, apply
 
 
 def trace(deps: Deps, job_id: str) -> dict[str, Any]:

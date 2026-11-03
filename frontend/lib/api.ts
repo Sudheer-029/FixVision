@@ -35,12 +35,40 @@ export type Job = {
 export type Triage = {
   causes: { fault_id: string; likelihood: number; evidence: string[] }[];
   requested_check: { instruction: string; component_concept: string };
+  transcript?: string;
 };
 
 export type Guidance = {
   stop_conditions: string[];
   steps: { text: string; component_concept: string; requires_approval: boolean }[];
   cited_sections: string[];
+};
+
+export type ServiceRecord = {
+  job_id: string;
+  job_token: string;
+  data_class: string;
+  equipment: string;
+  fault_hypothesis: string;
+  symptom_transcript: string;
+  verdict: Verdict["verdict"];
+  reasons: string[];
+  checks: Check[];
+  measurements: {
+    fill_time_video_s: number | null;
+    fill_time_typed_s: number | null;
+    run_s: number | null;
+  };
+  conditions: Verdict["conditions"];
+  uncertainties: string[];
+  requested_actions: string[];
+  evidence_frames: string[];
+  guide_sections: string[];
+  models: Record<string, string>;
+  thresholds_version: string | null;
+  created_at: string;
+  verified_at: string;
+  review: { decision: string | null; note: string; reviewed_at: string | null };
 };
 
 export type Call = {

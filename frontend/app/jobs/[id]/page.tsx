@@ -6,11 +6,12 @@ import { useState, type FormEvent } from "react";
 import { Capture } from "@/components/Capture";
 import { postJson, uploadMedia, type Guidance, type Job, type Triage } from "@/lib/api";
 import { isBusy, useJob } from "@/lib/useJob";
+import { cleanReason, HEADLINE, RESULT_LABEL, SUPPLY_LABEL } from "@/lib/verdict";
 
 type ScreenProps = { job: Job; refresh: () => Promise<void> };
 
 const WORKING: Record<string, string> = {
-  triage: "Muse Spark is reading the symptom…",
+  triage: "Muse Spark is listening to and reading the symptom…",
   guidance: "Muse Spark is preparing guidance from the pump guide…",
   verify: "SAM 3.1 and Muse Spark are checking the videos. This can take a few minutes…",
 };
@@ -54,6 +55,7 @@ function Problem({ text }: { text: string }) {
 
 function Symptom({ job, refresh }: ScreenProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [voice, setVoice] = useState<File | null>(null);
   const [transcript, setTranscript] = useState("");
   const { busy, error, run } = useSubmit(refresh);
   const needsClip = job.state === "CREATED";
@@ -64,8 +66,9 @@ function Symptom({ job, refresh }: ScreenProps) {
       {needsClip && (
         <Capture label="Short video of the pump (up to 30 s)" file={file} onFile={setFile} />
       )}
+      <Capture label="Describe it by voice, in Hindi or English" audioOnly file={voice} onFile={setVoice} />
       <label>
-        <span className="field-label">What is wrong?</span>
+        <span className="field-label">Or type what is wrong</span>
         <textarea
           rows={3}
           value={transcript}
@@ -78,6 +81,7 @@ function Symptom({ job, refresh }: ScreenProps) {
         onClick={() =>
           void run(async () => {
             if (needsClip) await uploadMedia(job.id, "symptom", file!);
+            if (voice) await uploadMedia(job.id, "voice", voice);
             await postJson(`/jobs/${job.id}/triage`, { transcript });
           })
         }
@@ -97,6 +101,11 @@ function CheckCapture({ job, refresh }: ScreenProps) {
   return (
     <section className="card stack">
       <h2>2. Run this check</h2>
+      {triage?.transcript && (
+        <p className="muted">
+          You said: <span lang="hi">{triage.transcript}</span>
+        </p>
+      )}
       <p className="instruction">{triage?.requested_check.instruction}</p>
       <Capture label="Video of the check" file={file} onFile={setFile} />
       <button
@@ -146,7 +155,7 @@ function ConfirmCause({ job, refresh }: ScreenProps) {
 
 function RepairGuidance({ job, refresh }: ScreenProps) {
   const guidance = stepResult<Guidance>(job, "guidance");
-  // shortcut: approvals live in this page only, store them with the job for the T9 service record
+  // shortcut: approvals live in this page only, store them with the job when a record must prove them
   const [approved, setApproved] = useState<Record<number, boolean>>({});
   const [stopped, setStopped] = useState(false);
   const allApproved = guidance?.steps.every((s, i) => !s.requires_approval || approved[i]) ?? false;
@@ -324,18 +333,6 @@ function FunctionalTest({ job, refresh }: ScreenProps) {
   );
 }
 
-const HEADLINE = {
-  PASSED: "Passed these checks under these conditions",
-  FAILED: "Failed",
-  INCONCLUSIVE: "Inconclusive: not enough evidence to decide",
-};
-const RESULT_LABEL: Record<string, string> = {
-  pass: "Pass",
-  fail: "Fail",
-  insufficient_evidence: "Not enough evidence",
-};
-const SUPPLY_LABEL: Record<string, string> = { battery_9v: "9 V battery", usb_5v: "5 V USB" };
-
 function VerdictScreen({ job, refresh }: ScreenProps) {
   const [again, setAgain] = useState(false);
   const verdict = job.verdict;
@@ -348,7 +345,7 @@ function VerdictScreen({ job, refresh }: ScreenProps) {
       <section className={`verdict ${verdict.verdict.toLowerCase()}`} role="status">
         <h2>{HEADLINE[verdict.verdict]}</h2>
         {verdict.reasons.map((r) => (
-          <p key={r}>{r.replace(/^C\d_\w+: /, "")}</p>
+          <p key={r}>{cleanReason(r)}</p>
         ))}
       </section>
 
@@ -422,6 +419,9 @@ function VerdictScreen({ job, refresh }: ScreenProps) {
               Repair or record again
             </button>
           ))}
+        <Link className="button secondary" href={`/jobs/${job.id}/record`}>
+          Service record
+        </Link>
         {job.state !== "REVIEWED" && (
           <Link className="button secondary" href={`/jobs/${job.id}/review`}>
             Manager review

@@ -14,6 +14,7 @@ from sqlmodel import Session, select
 from app.jobs import steps as S
 from app.jobs.models import Job, Media, Record, Step, now
 from app.jobs.state import State
+from app.records import record
 from app.verification.schema import SUPPORTED_EQUIPMENT, Conditions, Fault, Token
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -148,9 +149,11 @@ def start_triage(job_id: str, body: TriageIn, deps: DepsDep, request: Request) -
     with Session(deps.engine) as s:
         require_state(load_job(s, job_id), State.SYMPTOM_CAPTURED)
         symptom = S.latest_media(s, job_id, "symptom").path
+        voice = S.latest_media(s, job_id, "voice")
+        voice_path = voice.path if voice else None
 
         def fn(job: Job) -> S.Outcome:
-            return S.triage(deps, symptom, body.transcript, job)
+            return S.triage(deps, symptom, voice_path, body.transcript, job)
 
         return enqueue(request, deps, s, job_id, "triage", fn)
 
@@ -233,6 +236,16 @@ def get_evidence(job_id: str, concept: Literal["jar", "intake"], deps: DepsDep) 
     if path is None or not path.exists():
         raise HTTPException(404, "no evidence frame")
     return FileResponse(path, media_type="image/jpeg")
+
+
+@router.get("/{job_id}/record")
+def get_record(job_id: str, deps: DepsDep) -> dict[str, Any]:
+    with Session(deps.engine) as s:
+        job = load_job(s, job_id)
+        verdict = S.latest_verdict(s, job_id)
+        if verdict is None:
+            raise HTTPException(404, "no verdict yet")
+        return record.build(s, deps.cfg, job, verdict)
 
 
 @router.get("/{job_id}/trace")
