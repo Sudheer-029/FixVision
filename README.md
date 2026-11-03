@@ -93,18 +93,18 @@ It runs locally: open http://localhost:3000. The API has no login, so do not exp
 
 ## Results
 
-Measured on staged trials. See [docs/EVALS.md](docs/EVALS.md). _Filled in after Phase 3._
+Five staged trials with fresh model calls, on clips also used during development, so these numbers are exploratory. See [docs/EVALS.md](docs/EVALS.md).
 
 | Metric | Value |
 |---|---|
-| Trials | — |
-| Correct Passed | — |
-| False Passed (most important to keep at 0) | — |
-| Correct Failed / Inconclusive | — |
-| Median latency per job | — |
-| Cost per job (USD) | — |
+| Trials | 5 (faulty, repaired, 3 trick clips) |
+| As expected | 4 of 5 |
+| False Passed (most important to keep at 0) | 0 |
+| Inconclusive | 5 of 5 |
+| Median latency per job | 154.8 s |
+| Cost per job (USD) | $0.105 |
 
-Faults are staged and the sample is small; numbers are reported as exploratory.
+The miss: the faulty clip came back Inconclusive instead of Failed, because Muse Spark did not confirm the pump was submerged on that run. Results vary between runs. No real clip reached Passed, so that path is covered only by automated tests with constructed evidence.
 
 ## Built during the hackathon
 
