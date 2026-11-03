@@ -24,3 +24,6 @@ data/private/
 !data/samples/**
 # os
 .DS_Store
+
+# internal: recording notes stay local
+docs/DEMO_SCRIPT.md

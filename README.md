@@ -130,7 +130,6 @@ Everything in this repository was created between Oct 26 and Nov 4, 2026, except
 | [META_API_NOTES](docs/META_API_NOTES.md) | Verified Meta Model API facts used in the build |
 | [BUILD_PLAN](docs/BUILD_PLAN.md) | Phased plan and task prompts |
 | [WEEKEND_RUNBOOK](docs/WEEKEND_RUNBOOK.md) | Step-by-step build order with Claude Code commands |
-| [DEMO_SCRIPT](docs/DEMO_SCRIPT.md) | The 3-minute demo |
 
 ## Safety and limits
 
