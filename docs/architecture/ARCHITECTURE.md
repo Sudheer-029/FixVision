@@ -5,8 +5,8 @@
 ## 1. Context
 
 ```
-Technician (phone browser) ──HTTPS──> FixVision ──HTTPS──> Meta Model API (Muse Spark, SAM 3.1, Voice Transcribe)
-Service manager (browser)  ──HTTPS──> FixVision ──HTTPS──> Baseten (Muse Spark Open, optional)
+Technician (browser)       ──HTTP───> FixVision ──HTTPS──> Meta Model API (Muse Spark, SAM 3.1, Voice Transcribe)
+Service manager (browser)  ──HTTP───> FixVision (runs locally for the hackathon)
 ```
 
 ## 2. Containers
@@ -16,7 +16,7 @@ Service manager (browser)  ──HTTPS──> FixVision ──HTTPS──> Baset
 | Web app | Next.js (mobile-first) | Guided capture, job timeline, verdict and record view, manager review |
 | API | Python 3.12, FastAPI | REST endpoints, uploads, job state machine |
 | Worker | Same codebase, async tasks | Calls models, runs perception and verification off the request path |
-| Database | SQLite (hackathon) → Postgres later | Jobs, observations, verdicts, records, case library, traces, cost ledger |
+| Database | SQLite (hackathon) → Postgres later | Jobs, observations, verdicts, records, steps, cost ledger |
 | Media store | Local disk (hackathon) → object storage later | Clips, sampled frames, audio; retention limit |
 
 ## 3. Components
@@ -25,14 +25,12 @@ Service manager (browser)  ──HTTPS──> FixVision ──HTTPS──> Baset
 |---|---|---|
 | Capture web app | [capture-web-app](../components/capture-web-app.md) | — |
 | Job orchestrator | [orchestrator](../components/orchestrator.md) | State machine |
-| Guard layer | [guard-layer](../components/guard-layer.md) | LlamaFirewall + rules |
 | Reasoning agent | [reasoning-agent](../components/reasoning-agent.md) | `muse-spark-1.3` |
 | Perception service | [perception-sam](../components/perception-sam.md) | `sam-3.1` |
 | Voice input | [voice-input](../components/voice-input.md) | `muse-voice-transcribe-1.0` |
-| Measurement input | [measurement](../components/measurement.md) | Form + timer cross-check |
+| Measurement input | [measurement](../components/measurement.md) | Form; typed time is a cross-check |
 | Verification engine | [verification-engine](../components/verification-engine.md) | Deterministic rules |
-| Service record | [service-record](../components/service-record.md) | Template + optional Muse Spark Open summary |
-| Case library | [case-library](../components/case-library.md) | Approved records, retrieval |
+| Service record | [service-record](../components/service-record.md) | Structured fields only |
 | Evals harness | [evals-harness](../components/evals-harness.md) | Trial runner, metrics |
 
 ## 4. Job lifecycle
@@ -65,7 +63,7 @@ FAILED or INCONCLUSIVE → (re-record or further repair) → CLOSEUP_CAPTURED
 
 ## 7. Trust boundaries
 
-- Untrusted: uploaded media, transcripts, technician free text, retrieved case text. All text passes the guard layer before reaching the reasoning prompt.
+- Untrusted: uploaded media, transcripts, technician free text. They reach Muse Spark only as observation or triage input: answers must match a strict schema, and no model outputs a verdict directly, though a false observation could affect one (ADR-0011).
 - Trusted: verification rules, thresholds, approved guide (repo-controlled).
 
 ## 8. Observability

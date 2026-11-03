@@ -5,7 +5,7 @@
 
 ## Screens
 1. New job: equipment (supported pump), data class (`staged`/`customer`), job token shown large.
-2. Symptom: record clip (≤ 30 s) + hold-to-talk voice note.
+2. Symptom: record clip (≤ 30 s) + voice note or typed note.
 3. Check: shows the requested diagnostic check with the SAM highlight on a reference frame; record close-up.
 4. Guidance: steps with approve / stop buttons; stop conditions shown first.
 5a. Post-repair close-up (≤ 10 s): job token in view, then the clean intake.
@@ -15,7 +15,7 @@
 8. Manager review: approve / reject with note.
 
 ## Not built yet
-Hold-to-talk voice (T8; the symptom screen has a text field), the SAM highlight on the check screen, and tap-to-select when SAM cannot find a part. Step approvals are kept in the page only (shortcut until the T9 service record). Runs locally; there is no public hosting.
+The SAM highlight on the check screen, and tap-to-select when SAM cannot find a part. Step approvals are kept in the page only, not in the service record. Runs locally; there is no public hosting.
 
 ## Interfaces
 REST calls to the API (see `orchestrator.md`) through a Next.js rewrite: the browser calls `/api/*`, and `API_ORIGIN` (default `http://localhost:8000`) says where the API is. Uploads via multipart; MP4 (H.264) recorded with `MediaRecorder` where supported, else file input.

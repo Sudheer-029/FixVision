@@ -1,5 +1,8 @@
 # Weekend runbook (Oct 30 – Nov 4, IST)
 
+> **Final scope (2026-11-03):** see [ADR-0011](architecture/adr/ADR-0011-final-hackathon-scope.md). Guard layer, case library, Baseten and Fireworks were not built; this plan is kept as history.
+
+
 How to build FixVision with Claude Code, one step at a time. Each step = one slash command in a **fresh Claude Code session**, then review → `/check` → commit → push.
 
 ## One-time setup (Fri, 15 min)

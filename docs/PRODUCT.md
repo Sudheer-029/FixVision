@@ -19,11 +19,11 @@ FixVision is an evidence-backed repair verification system: it guides a technici
 ## Workflow
 
 1. Technician starts a job, identifies the equipment, records the symptom and describes it by voice.
-2. FixVision highlights the relevant component and asks for one targeted diagnostic check.
+2. FixVision proposes likely causes and asks for one targeted diagnostic check.
 3. FixVision gives guidance from the approved pump guide, step by step, with technician approval and stop conditions.
 4. After the repair, the technician runs the guided functional test (fill time to a marked line, compared with the healthy pump, plus a leak check while running).
 5. FixVision issues Passed / Failed / Inconclusive with a service record.
-6. The manager reviews and approves; approved records enter the case library.
+6. The manager reviews and approves or rejects the record.
 
 ## Why Meta's models
 

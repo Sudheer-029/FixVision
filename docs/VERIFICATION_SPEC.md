@@ -11,7 +11,7 @@ This is the core of FixVision. It defines the functional test, the evidence each
 3. **Measured from the recording, not typed.** Every value a check depends on is read from the job's clips (the test clip, plus the post-repair close-up). Technician-entered values are cross-checks only ([ADR-0007](architecture/adr/ADR-0007-flow-timed-from-video.md)).
 4. **Stated conditions.** Every verdict names the conditions it was tested under (supply, duration, head height, water level).
 5. **False Passed is the worst error.** Thresholds are tuned to keep false passes at zero, even at the cost of more Inconclusive results.
-6. **Humans close the job.** A technician (or service manager) reviews and approves every record before it enters the case library.
+6. **Humans close the job.** A technician (or service manager) reviews and approves every record.
 
 **Timeline:** every time is in **seconds from the start of its clip**, and every evidence reference names the clip: `test@12.4`, `closeup@3.1`. Perception and reasoning convert frame indices to this timeline before returning results.
 

@@ -5,7 +5,7 @@ Python 3.12 + [uv](https://docs.astral.sh/uv/), Node 20+, ffmpeg, git. A Meta Mo
 
 ## Repository layout (target)
 ```
-backend/            FastAPI app (api, jobs, agents, perception, voice, measurement, verification, records, cases, guard)
+backend/            FastAPI app (api, jobs, agents, perception, verification, records)
 frontend/           Next.js web app
 evals/              trial runner and reports
 config/             rig_baseline.yaml, thresholds

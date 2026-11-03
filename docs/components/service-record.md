@@ -1,8 +1,8 @@
 # Component: Service record
 
-**Purpose:** Produce the evidence-backed record a manager can approve.
-**Code:** `backend/app/records/`
+**Purpose:** Produce the evidence-backed record a manager can review.
+**Code:** `backend/app/records/record.py`, `frontend/app/jobs/[id]/record/`, `GET /jobs/{id}/record`
 
-Contents: job id, equipment, fault hypothesis, verdict, each check with evidence frames, measurements, test conditions, uncertainties, requested actions, model ids, thresholds version, timestamps, reviewer decision.
-Formats: HTML view in the app; JSON export; optional PDF.
-Summary paragraph drafted by Muse Spark Open (Baseten) from the structured data; facts in the record always come from structured fields, never from the summary.
+Contents: job id and token, equipment, fault hypothesis, symptom transcript, verdict and reasons, each check, measurements (fill time from video and typed, run time), test conditions, uncertainties, requested actions, evidence frames, guide sections used, model ids, thresholds version, timestamps, reviewer decision.
+
+Formats: page in the app (print or save as PDF from the browser) and JSON. Every fact comes from structured fields; no model writes any part of the record.

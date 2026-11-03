@@ -1,5 +1,8 @@
 # Build plan
 
+> **Final scope (2026-11-03):** see [ADR-0011](architecture/adr/ADR-0011-final-hackathon-scope.md). Guard layer, case library, Baseten and Fireworks were not built; this plan is kept as history.
+
+
 **Builder:** solo, Indie Developer track · **Tools:** Claude Code (dev), Muse Code (selected modules) · **Deadline:** Nov 4, 9:00 PM ET = **Nov 5, 7:30 AM IST**; target submission Nov 4 evening IST.
 
 ## Phases

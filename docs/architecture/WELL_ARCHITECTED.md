@@ -7,10 +7,10 @@
 | Pillar | Design choice in FixVision | Evidence | Status | Next action |
 |---|---|---|---|---|
 | Operational excellence | Per-call traces, cost ledger, CI on every PR, runbook, ADRs | `RUNBOOK.md`, `adr/`, CI config | — | — |
-| Security | Guard layer on all untrusted text, secrets only in env, least-privilege keys, media retention limit, no personal data in demo | `SECURITY.md`, `guard-layer.md` | — | — |
+| Security | Structured model outputs with verdicts by rules only, secrets only in env, least-privilege keys, media retention limit, no personal data in demo | `SECURITY.md`, ADR-0011 | — | — |
 | Reliability | Timeouts, retries with backoff on 429/5xx, no retry on 400, idempotent job steps, Inconclusive instead of failure when a model is down | Component docs (failure modes) | — | — |
-| Performance efficiency | Frame sampling, async worker, parallel SAM + Spark calls, cached responses for repeated clips | `ARCHITECTURE.md`, `EVALS.md` latency | — | — |
-| Cost optimization | Daily spend limit, cost per job tracked, contributor-mode models for staged eval data, open weights for bulk runs, a small fine-tuned observer on Fireworks (if it matches accuracy) | `EVALS.md`, ADR-0004 | — | — |
+| Performance efficiency | Frame sampling, async worker, cached responses for repeated clips | `ARCHITECTURE.md`, `EVALS.md` latency | — | — |
+| Cost optimization | Daily spend limit, cost per job tracked, cached responses for repeated clips | `EVALS.md`, ADR-0004 | — | — |
 | Sustainability | Sample only needed frames, trim clips to the test window, avoid recomputation via cache | Config defaults | — | — |
 
 ## Generative AI checks
@@ -18,8 +18,8 @@
 | Theme | FixVision answer |
 |---|---|
 | Model selection | Each model has one necessary job (ADR-0002) |
-| Grounding | Guidance only from the approved pump guide and approved cases |
-| Guardrails | LlamaFirewall + stop conditions + scope limits |
+| Grounding | Guidance only from the approved pump guide, with cited sections |
+| Guardrails | Stop conditions + scope limits + schema-checked outputs |
 | Human oversight | Technician approval per step; manager approval per record |
-| Evaluation | Held-out trial set; false-pass rate is the headline metric |
+| Evaluation | Small exploratory trial set with no held-out split; false-pass count is the headline metric |
 | Data use | Contributor-mode models used only with staged rig data |

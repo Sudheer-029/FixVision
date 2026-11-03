@@ -5,7 +5,7 @@ Evidence-backed repair verification for small water pumps, built on Meta's model
 
 > Meta Global AI Developer Hackathon 2026 · Indie Developer track · Problem statement: *Push the Frontier* (manufacturing / physical systems)
 
-FixVision helps field technicians diagnose supported water-pump faults and document whether a repair **passes defined functional checks**. Muse Spark interprets symptoms and retrieves approved repair guidance, while SAM 3.1 highlights and tracks the relevant components. After the repair, FixVision combines guided video capture with measured test results to produce an evidence-backed service record, or **refuses verification when the evidence is insufficient**.
+FixVision helps field technicians diagnose supported water-pump faults and document whether a repair **passes defined functional checks**. Muse Spark interprets symptoms and gives repair guidance from an approved guide, while SAM 3.1 finds and tracks the jar and the pump. After the repair, FixVision combines guided video capture with measured test results to produce an evidence-backed service record, or **refuses verification when the evidence is insufficient**.
 
 It is not "a chatbot that knows repairs". It is a system that refuses to close a repair without sufficient evidence.
 
@@ -14,7 +14,6 @@ The pump is the first equipment family. The method (models observe, rules decide
 | | |
 |---|---|
 | Demo video | _link added at submission_ |
-| Live app | _link added at submission_ |
 | Repository | https://github.com/Sudheer-029/FixVision |
 | Built | Oct 26 – Nov 4, 2026 (see [Built during the hackathon](#built-during-the-hackathon)) |
 
@@ -23,7 +22,7 @@ The pump is the first equipment family. The method (models observe, rules decide
 ## What it does
 
 1. **Capture the symptom.** The technician records a short video and describes the problem by voice (Hindi or English).
-2. **Focus the inspection.** Muse Spark proposes likely causes and asks for one targeted diagnostic check. SAM 3.1 highlights and tracks the component being inspected.
+2. **Focus the inspection.** Muse Spark proposes likely causes and asks for one targeted diagnostic check.
 3. **Guide the repair.** Step-by-step guidance from our approved pump guide, with technician approval and clear stop conditions.
 4. **Run the functional test.** After the repair, a guided test: the time to fill a jar to a marked line, measured from the video and compared with the healthy pump, plus a leak check on the hose while the pump is running.
 5. **Issue a verdict.** A deterministic verification engine decides **Passed**, **Failed** or **Inconclusive** from the test evidence, and produces a service record with before/after evidence, measurements, test conditions and unresolved uncertainty.
@@ -57,9 +56,6 @@ All faults are staged on a safe, low-voltage rig. See [docs/RIG.md](docs/RIG.md)
 | `muse-spark-1.3` | Interprets symptom video + transcript, retrieves approved guidance, proposes causes, requests diagnostic checks, extracts timed observations from test videos (switch on/off, water flowing, fill start and fill line) | The only component that reasons over video, speech and documents together |
 | `sam-3.1` | Segments and tracks the jar through the test and the pump intake in the close-up | Frame-level, measurable evidence of what was in view while the flow was timed |
 | `muse-voice-transcribe-1.0` | Hindi / English symptom descriptions | Technicians describe faults by voice, hands busy |
-| Muse Spark Open (open weights, via Baseten) | Service-record drafting and an alternate reasoning backend for evals | Runs the eval loop cheaply on open weights |
-| `muse-image-1.0` *(optional)* | Annotated step cards | Visual guidance |
-| Fine-tuned Muse open model on Fireworks *(stretch)* | Strict-JSON test observations | Cheaper, more consistent observations, measured against the base model |
 
 The verdict itself is made by **our deterministic verification engine**, not by a model. Models produce observations with confidence; rules decide. See [docs/VERIFICATION_SPEC.md](docs/VERIFICATION_SPEC.md).
 
@@ -68,16 +64,17 @@ The verdict itself is made by **our deterministic verification engine**, not by 
 See [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md).
 
 ```
-Web app (guided capture) ──> API + job orchestrator ──> Guard layer (LlamaFirewall)
+Web app (guided capture) ──> API + job orchestrator + worker
                                    │
           ┌────────────────────────┼─────────────────────────┐
-     Reasoning agent         Perception (SAM 3.1)      Measurement input
-     (Muse Spark 1.3)        masks, tracks, signals    timed fill, conditions
+     Reasoning agent         Perception (SAM 3.1)      Technician input
+     (Muse Spark 1.3,        jar and pump tracks,      typed fill time,
+      Voice Transcribe)      evidence frames           test conditions
           └────────────────────────┼─────────────────────────┘
                                    ▼
                      Verification engine (rules, our code)
                                    ▼
-               Service record ──> Technician review ──> Case library
+                  Service record ──> Manager review
 ```
 
 ## Quickstart
@@ -85,14 +82,14 @@ Web app (guided capture) ──> API + job orchestrator ──> Guard layer (Lla
 ```bash
 git clone https://github.com/Sudheer-029/FixVision.git
 cd FixVision
-cp .env.example .env        # add MODEL_API_KEY (and BASETEN_API_KEY if used)
+cp .env.example .env        # add MODEL_API_KEY
 # backend
 cd backend && uv sync && uv run uvicorn app.main:app --reload
 # frontend
 cd ../frontend && npm install && npm run dev
 ```
 
-Full setup: [docs/development/DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
+It runs locally: open http://localhost:3000. The API has no login, so do not expose it publicly. Full setup: [docs/development/DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
 
 ## Results
 
@@ -113,9 +110,9 @@ Faults are staged and the sample is small; numbers are reported as exploratory.
 
 Everything in this repository was created between Oct 26 and Nov 4, 2026, except the third-party tools listed in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-**Ours:** the guided-capture web app, the job orchestrator, the reasoning and perception integrations, the verification engine and its rules, the service-record generator, the case library, the evaluation harness, the pump guide and test protocol, all documentation.
+**Ours:** the guided-capture web app, the job orchestrator, the reasoning, perception and voice integrations, the verification engine and its rules, the service record, the evaluation harness, the pump guide and test protocol, all documentation.
 
-**Third-party (integrated, not built by us):** Meta's models via the Model API, LlamaFirewall (PurpleLlama), and optionally prompt-ops, synthetic-data-kit and Meta-Harness. Daily progress: [docs/HACKATHON_LOG.md](docs/HACKATHON_LOG.md).
+**Third-party (integrated, not built by us):** Meta's models via the Model API and `meta-sam-parser`; other libraries are listed in THIRD_PARTY.md. Claude Code and Muse Code were development tools. Daily progress: [docs/HACKATHON_LOG.md](docs/HACKATHON_LOG.md).
 
 ## Documentation
 

@@ -1,15 +1,5 @@
 # Deployment
 
-| Part | Target | Notes |
-|---|---|---|
-| Web app | Vercel | `NEXT_PUBLIC_API_URL` points to the API |
-| API + worker | Render (or Fly.io), one instance with a persistent disk | Secrets from the platform's secret store; SQLite and media on the disk. One instance only: SQLite does not share well across machines. Modal only if its credit arrives and a volume is tested |
-| Open weights | Baseten | `meta-models/muse-spark-open-1026` |
+FixVision runs locally for the hackathon (see the README quickstart). There is no public deployment: the API has no login, so it must not be put on a public URL. The browser reaches the API through a Next.js rewrite, and `API_ORIGIN` sets where the API is.
 
-## Release
-1. CI green on `main`.
-2. Tag `vX.Y.Z`, update `CHANGELOG.md`.
-3. Deploy API, then web app; run `scripts/smoke.py` against production.
-
-## Rollback
-Redeploy the previous tag on both platforms; database migrations must be backward compatible (additive only during the hackathon).
+Before any hosted version: add login with a separate manager role, then move SQLite and media to managed storage.
