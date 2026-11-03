@@ -7,6 +7,6 @@
 | Integration | API end to end with mocked models | pytest + httpx | CI |
 | Live smoke | One real call per model | `scripts/smoke.py` | Manually, daily |
 | End to end | Web flow with sample clips | Playwright | Before demo |
-| Evaluation | Labeled trials, metrics | `evals/` | Phase 3, final on test split |
+| Evaluation | Labeled trials, metrics | `evals/` | By hand; uses paid model calls |
 
 Rules: the verification engine needs 100% branch coverage; every adversarial case in the spec has a fixture; no test spends money in CI.

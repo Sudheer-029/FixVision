@@ -15,7 +15,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "backend"))
 
-from app.clients.baseten_client import BasetenClient  # noqa: E402
 from app.clients.meta_client import CallResult, MetaClient  # noqa: E402
 from app.config import settings  # noqa: E402
 
@@ -79,17 +78,6 @@ def main() -> int:
         ),
         ("voice", "muse-voice-transcribe-1.0", lambda: meta.transcribe(wav, use_cache=False)),
     ]
-    if settings.baseten_api_key:
-        bt = BasetenClient()
-        calls.append(
-            (
-                "baseten",
-                settings.baseten_model,
-                lambda: bt.chat([{"role": "user", "content": "Reply with the word OK."}]),
-            )
-        )
-    else:
-        print("SKIP baseten (BASETEN_API_KEY not set)")
 
     failed = 0
     video_usage = None

@@ -42,9 +42,9 @@ class Timeline(Strict):
 
 class Conditions(Strict):
     supply: Supply | None = None
-    head_cm: float | None = None
-    water_level_cm: float | None = None
-    notes: str = ""
+    head_cm: float | None = Field(None, ge=0, le=200)
+    water_level_cm: float | None = Field(None, ge=0, le=200)
+    notes: str = Field("", max_length=2000)
 
 
 class JobEvidence(Strict):

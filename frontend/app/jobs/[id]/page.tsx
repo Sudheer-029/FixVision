@@ -137,17 +137,23 @@ function ConfirmCause({ job, refresh }: ScreenProps) {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <button
-            className="secondary"
-            disabled={busy}
-            onClick={() =>
-              void run(() => postJson(`/jobs/${job.id}/guidance`, { fault_id: cause.fault_id }))
-            }
-          >
-            Confirm this cause
-          </button>
+          {cause.fault_id === "F1" && (
+            <button
+              className="secondary"
+              disabled={busy}
+              onClick={() =>
+                void run(() => postJson(`/jobs/${job.id}/guidance`, { fault_id: cause.fault_id }))
+              }
+            >
+              Confirm this cause
+            </button>
+          )}
         </div>
       ))}
+      <p className="muted">
+        Not a blocked inlet? Stop here and pass this job to a senior technician. FixVision only
+        covers this one fault.
+      </p>
       <Problem text={error} />
     </section>
   );
@@ -286,7 +292,7 @@ function FunctionalTest({ job, refresh }: ScreenProps) {
         <input
           type="number"
           inputMode="decimal"
-          min="0.1"
+          min="5"
           max="600"
           step="0.1"
           required
@@ -307,6 +313,7 @@ function FunctionalTest({ job, refresh }: ScreenProps) {
           type="number"
           inputMode="decimal"
           min="0"
+          max="200"
           step="0.5"
           required
           value={head}
@@ -319,6 +326,7 @@ function FunctionalTest({ job, refresh }: ScreenProps) {
           type="number"
           inputMode="decimal"
           min="0"
+          max="200"
           step="0.5"
           required
           value={level}

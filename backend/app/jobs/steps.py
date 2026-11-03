@@ -37,6 +37,7 @@ from app.verification.schema import Conditions
 from app.verification.thresholds import load_thresholds
 
 log = logging.getLogger(__name__)
+EVIDENCE_CONCEPTS = ("jar", "intake")
 Apply = Callable[[Session, Job], None]
 Outcome = tuple[dict[str, Any], Apply]
 
@@ -76,6 +77,10 @@ def evidence_dir(cfg: Settings, job_id: str, step: str) -> Path:
     return cfg.jobs_dir / job_id / "evidence" / step.replace(":", "-")
 
 
+def evidence_on_disk(cfg: Settings, job_id: str, step: str) -> list[str]:
+    return [c for c in EVIDENCE_CONCEPTS if (evidence_dir(cfg, job_id, step) / f"{c}.jpg").exists()]
+
+
 def claim(s: Session, job_id: str, step: str) -> bool:
     """False if the step is queued, running or done; an errored step can be claimed again."""
     row = s.get(Step, (job_id, step))
@@ -91,7 +96,8 @@ def claim(s: Session, job_id: str, step: str) -> bool:
 def run_step(deps: Deps, job_id: str, step: str, fn: Callable[[Job], Outcome]) -> None:
     with Session(deps.engine) as s:
         row = s.get(Step, (job_id, step))
-        row.status, row.started_at, row.finished_at = "running", now(), None
+        # a retry keeps the first start, so the trace still shows the failed attempt's calls
+        row.status, row.started_at, row.finished_at = "running", row.started_at or now(), None
         s.add(row)
         s.commit()
         job = s.get(Job, job_id)
@@ -118,7 +124,7 @@ VOICE_KEYWORDS = ("pump", "hose", "flow", "leak")
 
 
 def triage(deps: Deps, symptom_path: str, voice_path: str | None, typed: str, job: Job) -> Outcome:
-    model = reasoning.model_for(deps.cfg, job.data_class)
+    model = deps.cfg.reasoning_model
     clip = deps.prepare(deps.cfg, Path(symptom_path))
     heard = ""
     if voice_path:
@@ -135,7 +141,7 @@ def triage(deps: Deps, symptom_path: str, voice_path: str | None, typed: str, jo
 
 
 def guidance(deps: Deps, fault: str, job: Job) -> Outcome:
-    model = reasoning.model_for(deps.cfg, job.data_class)
+    model = deps.cfg.reasoning_model
     g = reasoning.guidance(deps.client, model, fault, job.id)
 
     def apply(s: Session, j: Job) -> None:
@@ -165,14 +171,18 @@ def verify_job(
         fault=job.fault or "unknown",
         fill_time_s=fill_time_s,
         conditions=conditions,
-        model=reasoning.model_for(deps.cfg, job.data_class),
+        model=deps.cfg.reasoning_model,
     )
     evidence = collected.evidence
     verdict = verify(evidence, load_thresholds(deps.cfg.rig_baseline_path))
     closeup = Path(closeup_path) if closeup_path else None
     try:
         evidence_frames(collected, Path(test_path), closeup, evidence_dir(deps.cfg, job.id, step))
-    except (subprocess.CalledProcessError, OSError):  # an illustration never blocks a verdict
+    except (
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+        OSError,
+    ):  # an illustration never blocks a verdict
         log.exception("evidence frames failed for job %s", job.id)
 
     def apply(s: Session, j: Job) -> None:

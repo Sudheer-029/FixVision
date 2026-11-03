@@ -19,7 +19,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "backend"))
 
-from app.agents.reasoning import model_for  # noqa: E402
 from app.clients.meta_client import MetaClient  # noqa: E402
 from app.config import Settings  # noqa: E402
 from app.pipeline import collect_evidence  # noqa: E402
@@ -101,7 +100,7 @@ def run_trial(t: dict, client: MetaClient, cfg: Settings, thresholds) -> dict:
         fault="F1",
         fill_time_s=t["fill_time_s"],
         conditions=Conditions(supply="battery_9v"),
-        model=model_for(cfg, "staged"),
+        model=cfg.reasoning_model,
     )
     v = verify(collected.evidence, thresholds)
     ev = collected.evidence

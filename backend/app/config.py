@@ -12,18 +12,10 @@ class Settings(BaseSettings):
     model_api_base_url: str = "https://api.meta.ai/v1"
     model_api_key: str = ""
     reasoning_model: str = "muse-spark-1.3"
-    reasoning_model_eval: str = "muse-spark-1.3-contributor"
     segmentation_model: str = "sam-3.1"
     sam_sample_fps: float = 3.0
     daily_spend_limit_usd: float = 10.0
 
-    baseten_api_key: str = ""
-    baseten_model: str = "meta-models/muse-spark-open-1026"
-    fireworks_api_key: str = ""
-    fireworks_base_url: str = "https://api.fireworks.ai/inference/v1"
-    fireworks_base_model: str = ""
-
-    media_retention_days: int = 7
     rig_baseline_path: str = str(REPO_ROOT / "config" / "rig_baseline.yaml")
     cache_dir: Path = REPO_ROOT / "data" / "cache"
     ledger_path: Path = REPO_ROOT / "data" / "cache" / "ledger.sqlite"

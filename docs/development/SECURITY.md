@@ -1,12 +1,11 @@
 # Security and data handling
 
 ## Secrets
-`.env` only (never committed); platform secret stores in deployment; separate keys for dev and demo; rotate if exposed.
+`.env` only (never committed); rotate if exposed.
 
 ## Data
 - Demo and eval data are staged rig recordings with no people's faces or voices beyond the author.
-- Media retention: `MEDIA_RETENTION_DAYS` (default 7) for raw uploads; records keep sampled evidence frames only.
-- `data_class = customer` jobs never use contributor-mode models (their content may be used for training).
+- Uploads and evidence frames stay in `data/private/` on the local machine until you delete them; nothing deletes them automatically.
 
 ## Threat model (summary)
 | Threat | Mitigation |

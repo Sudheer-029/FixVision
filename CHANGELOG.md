@@ -5,17 +5,17 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Da
 ## [Unreleased]
 
 ### Added
-- 2026-10-27: Project documentation set, verification spec, rig protocol, build plan.
-- 2026-10-28: Fireworks fine-tuning plan (ADR-0006, build task T12), budgets for Baseten and Fireworks credits.
-- 2026-10-30: Claude Code project kit (.claude commands, skills, subagents, settings) and weekend runbook.
+- 2026-10-27: Project documentation set, verification spec, rig protocol.
 - 2026-10-30: ADR-0007, flow timed from the test clip.
-- 2026-10-30: T1 scaffold (FastAPI backend, Next.js frontend, CI).
-- 2026-11-01: T2 Meta API client (retries, cache, cost ledger, spend limit), Baseten client, `scripts/smoke.py`.
-- 2026-11-01: T5 reasoning agent (`backend/app/agents/`: triage, guidance, observe_test, observe_fill; versioned prompts; one repair retry), pump guide `data/guides/pump_guide.md`, end-to-end `app/pipeline.py` and `scripts/run_clip.py`; ADR-0010 (fill times from SAM-cropped, time-labelled jar frames).
-- 2026-11-02: T6 orchestrator and API (`backend/app/jobs/`, `backend/app/api/`): job state machine, SQLite tables, one background worker with idempotent steps, `GET /jobs/{id}/trace`.
-- 2026-11-03: T7 local web app (`frontend/`): job code, guided capture, functional test, verdict with evidence frames, trace and manager review; Playwright smoke test. Staged jobs can keep the code in a recorded clip.
-- 2026-11-01: T4 SAM 3.1 perception (`backend/app/perception/`: ffmpeg sampling, `glass jar` and `white pump` prompts, presence timelines), recorded SAM fixtures, `scripts/perceive.py`; ADR-0009 (C1 water flow from Muse Spark).
-- 2026-11-01: T3 verification engine (`backend/app/verification/`) with boundary, adversarial and property tests at 100% branch coverage (enforced in CI); `scripts/verify_json.py`.
+- 2026-10-30: scaffold (FastAPI backend, Next.js frontend, CI).
+- 2026-11-01: Meta API client (retries, cache, cost ledger, spend limit), `scripts/smoke.py`.
+- 2026-11-01: reasoning agent (`backend/app/agents/`: triage, guidance, observe_test, observe_fill; versioned prompts; one repair retry), pump guide `data/guides/pump_guide.md`, end-to-end `app/pipeline.py` and `scripts/run_clip.py`; ADR-0010 (fill times from SAM-cropped, time-labelled jar frames).
+- 2026-11-02: orchestrator and API (`backend/app/jobs/`, `backend/app/api/`): job state machine, SQLite tables, one background worker with idempotent steps, `GET /jobs/{id}/trace`.
+- 2026-11-03: local web app (`frontend/`): job code, guided capture, functional test, verdict with evidence frames, trace and manager review; Playwright smoke test. Staged jobs can keep the code in a recorded clip.
+- 2026-11-03: Evals with fresh model calls (`evals/`), Hindi and English voice notes, service record page and JSON.
+- 2026-11-03: Audit fixes: Next.js security update, unknown faults get no repair steps, app limited to this machine, limits on test values, ffmpeg timeout.
+- 2026-11-01: SAM 3.1 perception (`backend/app/perception/`: ffmpeg sampling, `glass jar` and `white pump` prompts, presence timelines), recorded SAM fixtures, `scripts/perceive.py`; ADR-0009 (C1 water flow from Muse Spark).
+- 2026-11-01: verification engine (`backend/app/verification/`) with boundary, adversarial and property tests at 100% branch coverage (enforced in CI); `scripts/verify_json.py`.
 
 ### Changed
 - 2026-11-01: Fixed `count_video_frames` failing on MP4s where ffprobe prints a trailing comma.

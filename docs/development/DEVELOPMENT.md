@@ -39,4 +39,3 @@ cd frontend && npm install && npm run dev   # http://localhost:3000
 - One task at a time, with the matching component doc and the spec section in the prompt.
 - Ask for tests with every change; review every diff before committing.
 - Keep docs in sync: a change to a component updates its doc in the same PR.
-- See `docs/BUILD_PLAN.md` for the task prompts.

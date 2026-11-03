@@ -21,28 +21,23 @@ print(r.output_text)
 | Model ID | Use in FixVision | Notes |
 |---|---|---|
 | `muse-spark-1.3` | Reasoning agent | Text, image, video, audio, PDF in; 1M context |
-| `muse-spark-1.3-contributor` | Evals on staged rig data only | Much cheaper; content may be used to train Meta models |
 | `sam-3.1` | Perception | Image/video segmentation and tracking via Responses API |
 | `muse-voice-transcribe-1.0` | Voice symptoms | `POST /v1/asr/transcribe`; Hindi supported |
-| `muse-image-1.0` | Optional step cards | Image generation/editing |
 | `muse-wonder-1.0` | Not used | Coding / agentic model (not video generation) |
 
-Open weights (not on Model API): Muse Spark Open, Muse Glimmer. Hackathon Baseten model ID: `meta-models/muse-spark-open-1026`.
 
 ## Pricing ([pricing](https://dev.meta.ai/docs/pricing-rate-limits))
 
 | Model | Price |
 |---|---|
 | Muse Spark 1.3 standard | $1.25 / 1M input, $4.25 / 1M output, $0.15 cached input |
-| Muse Spark contributor | $0.10 / 1M input, $0.20 / 1M output |
 | SAM 3.1 video | $0.20 per 1,000 frames, minimum 50 frames per request |
 | SAM 3.1 images | $2.50 per 1,000 images |
 | Voice Transcribe | $0.18 per hour of audio |
-| Muse Image | $0.01 per image |
 
 How video input is tokenized for Muse Spark is not documented; measure on Day 1.
 **Measured 2026-11-01 (`scripts/smoke.py`):** a 3 s, 640×480, 3 fps synthetic MP4 cost 796 input tokens (≈ 0.0006 $ in); the one-sentence answer used 1,092 output tokens, 1,038 of them reasoning. Re-measure on a real 30–40 s rig clip; reasoning tokens dominate the cost.
-Rate limits (per team): Muse Spark 3,000 RPM / 4M TPM; SAM 3,000 RPM; Muse Image 150 RPM.
+Rate limits (per team): Muse Spark 3,000 RPM / 4M TPM; SAM 3,000 RPM.
 
 ## SAM 3.1 ([segmenting](https://dev.meta.ai/docs/sam/segmenting))
 

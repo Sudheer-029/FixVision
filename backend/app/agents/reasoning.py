@@ -5,7 +5,6 @@ answer that fails it gets one repair retry, then the step errors.
 """
 
 import base64
-import json
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -14,7 +13,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ValidationError, create_model
 
 from app.clients.meta_client import MetaClient
-from app.config import REPO_ROOT, Settings
+from app.config import REPO_ROOT
 from app.verification.schema import Clip, Observation
 
 PROMPTS = Path(__file__).parent / "prompts"
@@ -31,11 +30,6 @@ def prompt(name: str) -> str:
 
 def prompt_id(text: str) -> str:
     return text.split("id:", 1)[1].split("-->", 1)[0].strip()
-
-
-def model_for(cfg: Settings, data_class: str = "real", eval_mode: bool = False) -> str:
-    """Contributor (cheap, may train Meta models) only for staged rig data in eval mode."""
-    return cfg.reasoning_model_eval if eval_mode and data_class == "staged" else cfg.reasoning_model
 
 
 def _structured(
@@ -333,7 +327,3 @@ def guidance(client: MetaClient, model: str, fault_id: str, job_id: str | None =
     return _structured(
         client, model, content, GUIDANCE_SCHEMA, Guidance, "guidance", job_id, check=cites_guide
     )
-
-
-def as_json(m: BaseModel) -> str:
-    return json.dumps(m.model_dump(), indent=2)

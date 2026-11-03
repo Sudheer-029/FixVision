@@ -89,7 +89,7 @@ cd backend && uv sync && uv run uvicorn app.main:app --reload
 cd ../frontend && npm install && npm run dev
 ```
 
-It runs locally: open http://localhost:3000. The API has no login, so do not expose it publicly. Full setup: [docs/development/DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
+It runs on this machine only: open http://localhost:3000. The API has no login, so do not expose it publicly. Full setup: [docs/development/DEVELOPMENT.md](docs/development/DEVELOPMENT.md).
 
 ## Results
 
@@ -112,7 +112,7 @@ Everything in this repository was created between Oct 26 and Nov 4, 2026, except
 
 **Ours:** the guided-capture web app, the job orchestrator, the reasoning, perception and voice integrations, the verification engine and its rules, the service record, the evaluation harness, the pump guide and test protocol, all documentation.
 
-**Third-party (integrated, not built by us):** Meta's models via the Model API and `meta-sam-parser`; other libraries are listed in THIRD_PARTY.md. Claude Code and Muse Code were development tools. Daily progress: [docs/HACKATHON_LOG.md](docs/HACKATHON_LOG.md).
+**Third-party (integrated, not built by us):** Meta's models via the Model API and `meta-sam-parser`; other libraries are listed in THIRD_PARTY.md. Claude Code was a development tool. Daily progress: [docs/HACKATHON_LOG.md](docs/HACKATHON_LOG.md).
 
 ## Documentation
 
@@ -128,8 +128,6 @@ Everything in this repository was created between Oct 26 and Nov 4, 2026, except
 | [Development](docs/development/) | Setup, testing, deployment, runbook, security |
 | [EVALS](docs/EVALS.md) | Evaluation method and results |
 | [META_API_NOTES](docs/META_API_NOTES.md) | Verified Meta Model API facts used in the build |
-| [BUILD_PLAN](docs/BUILD_PLAN.md) | Phased plan and task prompts |
-| [WEEKEND_RUNBOOK](docs/WEEKEND_RUNBOOK.md) | Step-by-step build order with Claude Code commands |
 
 ## Safety and limits
 

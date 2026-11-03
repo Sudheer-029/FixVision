@@ -27,3 +27,9 @@ data/private/
 
 # internal: recording notes stay local
 docs/DEMO_SCRIPT.md
+.claude/
+docs/BUILD_PLAN.md
+docs/WEEKEND_RUNBOOK.md
+docs/architecture/adr/ADR-0004-open-weights-and-contributor-mode.md
+docs/architecture/adr/ADR-0005-case-library-retrieval-first.md
+docs/architecture/adr/ADR-0006-fireworks-fine-tuned-observer.md

@@ -23,7 +23,6 @@ MediaKind = Literal["symptom", "check", "closeup", "test", "voice"]
 SUFFIXES = {".mp4", ".mov", ".webm", ".m4a", ".wav"}
 MAX_UPLOAD_BYTES = 300 * 1024 * 1024
 TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I: the code is handwritten
-EVIDENCE_CONCEPTS = ("jar", "intake")
 MEDIA_TARGET = {
     "symptom": State.SYMPTOM_CAPTURED,
     "check": State.CHECK_CAPTURED,
@@ -54,7 +53,7 @@ class GuidanceIn(BaseModel):
 
 
 class TestIn(BaseModel):
-    fill_time_s: float | None = Field(None, gt=0, le=600)
+    fill_time_s: float | None = Field(None, ge=5, le=600)
     conditions: Conditions = Conditions()
 
 
@@ -162,6 +161,8 @@ def start_triage(job_id: str, body: TriageIn, deps: DepsDep, request: Request) -
 def start_guidance(job_id: str, body: GuidanceIn, deps: DepsDep, request: Request) -> dict:
     with Session(deps.engine) as s:
         require_state(load_job(s, job_id), State.CHECK_CAPTURED)
+        if body.fault_id != "F1":
+            raise HTTPException(409, "Out of scope: pass this job to a senior technician")
 
         def fn(job: Job) -> S.Outcome:
             return S.guidance(deps, body.fault_id, job)
@@ -217,12 +218,7 @@ def get_job(job_id: str, deps: DepsDep) -> dict[str, Any]:
                 for st in steps
             ],
             "verdict": json.loads(verdict.data_json) if verdict else None,
-            "evidence": [
-                c
-                for c in EVIDENCE_CONCEPTS
-                if verdict
-                and (S.evidence_dir(deps.cfg, job_id, verdict.step) / f"{c}.jpg").exists()
-            ],
+            "evidence": S.evidence_on_disk(deps.cfg, job_id, verdict.step) if verdict else [],
             "record": record.model_dump() if record else None,
         }
 

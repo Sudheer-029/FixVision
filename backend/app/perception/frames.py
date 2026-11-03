@@ -9,9 +9,13 @@ import json
 import subprocess
 from pathlib import Path
 
+FFMPEG_TIMEOUT_S = 600  # one worker: a file that hangs ffmpeg must not stop every later job
+
 
 def _run(args: list[str]) -> str:
-    return subprocess.run(args, check=True, capture_output=True, text=True).stdout
+    return subprocess.run(
+        args, check=True, capture_output=True, text=True, timeout=FFMPEG_TIMEOUT_S
+    ).stdout
 
 
 def duration_s(path: str | Path) -> float:

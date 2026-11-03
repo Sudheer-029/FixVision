@@ -18,7 +18,7 @@
 - Unknown → say unknown with low confidence.
 
 ## Model and settings
-`REASONING_MODEL` (`muse-spark-1.3`); evals may use `REASONING_MODEL_EVAL`. Structured output via JSON schema; timeouts 60 s; retries on 429/5xx with backoff.
+`REASONING_MODEL` (`muse-spark-1.3`). Structured output via JSON schema; timeouts 60 s; retries on 429/5xx with backoff.
 
 ## Failure modes
 Schema-invalid output → one repair retry, then step error; low confidence → observation recorded as insufficient.

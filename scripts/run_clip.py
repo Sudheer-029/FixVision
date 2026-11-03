@@ -12,7 +12,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "backend"))
 
-from app.agents.reasoning import model_for  # noqa: E402
 from app.clients.meta_client import MetaClient  # noqa: E402
 from app.config import Settings  # noqa: E402
 from app.pipeline import collect_evidence  # noqa: E402
@@ -45,7 +44,7 @@ def main() -> None:
         fault=args.fault,
         fill_time_s=args.fill_time,
         conditions=Conditions(supply=args.supply),
-        model=model_for(cfg, "staged"),
+        model=cfg.reasoning_model,
     )
     ev = collected.evidence
     if args.evidence_out:

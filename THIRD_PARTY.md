@@ -10,6 +10,7 @@ FixVision integrates the following. None of them were built by us. Each keeps it
 | python-multipart | https://github.com/Kludex/python-multipart | Apache-2.0 | Parsing clip uploads in FastAPI | Used |
 | Playwright | https://github.com/microsoft/playwright | Apache-2.0 | Browser smoke test (dev only) | Used |
 | OpenAI Python SDK | https://github.com/openai/openai-python | Apache-2.0 | HTTP client for the Meta Model API (OpenAI-compatible) | Used |
+| Claude Code | https://claude.com/claude-code (Anthropic) | Anthropic terms | Development tool; not part of the product | Dev only |
 | Archify | https://github.com/tt-a1i/archify | Apache-2.0 | Architecture diagrams in docs (dev tool) | Dev only |
 | FastAPI, Pydantic, Next.js, ffmpeg | Respective projects | MIT / BSD / LGPL (ffmpeg as external binary) | App framework, media processing | Used |
 

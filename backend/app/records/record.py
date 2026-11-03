@@ -7,16 +7,26 @@ from sqlmodel import Session, select
 
 from app.config import Settings
 from app.jobs.models import Job, Media, ObservationRow, Record, Step, VerdictRow
+from app.jobs.steps import evidence_on_disk
+from app.verification.thresholds import load_thresholds
 
 
-def _fill_from_video(observations: list[dict]) -> float | None:
-    values = {o["id"]: o["value"] for o in observations if o["clip"] == "test"}
+def _fill_from_video(observations: list[dict], min_confidence: float | None) -> float | None:
+    """Only a time the rules could trust; no baseline means none could be trusted."""
+    if min_confidence is None:
+        return None
+    values = {
+        o["id"]: o["value"]
+        for o in observations
+        if o["clip"] == "test" and o["confidence"] >= min_confidence
+    }
     start, line = values.get("fill_start_t"), values.get("fill_line_t")
     return None if start is None or line is None else round(line - start, 1)
 
 
 def build(s: Session, cfg: Settings, job: Job, verdict_row: VerdictRow) -> dict[str, Any]:
     verdict = json.loads(verdict_row.data_json)
+    thresholds = load_thresholds(cfg.rig_baseline_path)
     query = select(ObservationRow).where(
         ObservationRow.job_id == job.id, ObservationRow.step == verdict_row.step
     )
@@ -29,7 +39,6 @@ def build(s: Session, cfg: Settings, job: Job, verdict_row: VerdictRow) -> dict[
         select(Step).where(Step.job_id == job.id, Step.step == f"guidance:{job.fault}")
     ).first()
     review = s.get(Record, job.id)
-    evidence_dir = cfg.jobs_dir / job.id / "evidence" / verdict_row.step.replace(":", "-")
     media = s.exec(select(Media).where(Media.job_id == job.id)).all()
     return {
         "job_id": job.id,
@@ -42,7 +51,9 @@ def build(s: Session, cfg: Settings, job: Job, verdict_row: VerdictRow) -> dict[
         "reasons": verdict["reasons"],
         "checks": verdict["checks"],
         "measurements": {
-            "fill_time_video_s": _fill_from_video(observations),
+            "fill_time_video_s": _fill_from_video(
+                observations, thresholds.confidence_threshold if thresholds else None
+            ),
             "fill_time_typed_s": typed,
             "run_s": verdict["run_s"],
         },
@@ -50,7 +61,7 @@ def build(s: Session, cfg: Settings, job: Job, verdict_row: VerdictRow) -> dict[
         "uncertainties": verdict["uncertainties"],
         "requested_actions": verdict["requested_actions"],
         "observations": observations,
-        "evidence_frames": [c for c in ("jar", "intake") if (evidence_dir / f"{c}.jpg").exists()],
+        "evidence_frames": evidence_on_disk(cfg, job.id, verdict_row.step),
         "media": [{"kind": m.kind, "uploaded_at": m.created_at} for m in media],
         "guide_sections": json.loads(guidance.result_json).get("cited_sections", [])
         if guidance and guidance.result_json

@@ -29,7 +29,6 @@ VOICE_MODEL = "muse-voice-transcribe-1.0"
 # USD per unit, from docs/META_API_NOTES.md (2026-10-27)
 PRICES: dict[str, dict[str, float]] = {
     "muse-spark-1.3": {"input": 1.25e-6, "cached_input": 0.15e-6, "output": 4.25e-6},
-    "muse-spark-1.3-contributor": {"input": 0.10e-6, "cached_input": 0.10e-6, "output": 0.20e-6},
     "sam-3.1": {"frame": 0.20e-3, "min_frames": 50, "image": 2.50e-3},
     VOICE_MODEL: {"audio_hour": 0.18},
 }
@@ -169,7 +168,7 @@ def count_video_frames(path: Path) -> int:
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_packets",
          "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0", str(path)],
-        capture_output=True, text=True, check=True,
+        capture_output=True, text=True, check=True, timeout=60,
     ).stdout  # fmt: skip
     return int(out.strip().split(",")[0])  # some MP4s print a trailing "," (side data)
 

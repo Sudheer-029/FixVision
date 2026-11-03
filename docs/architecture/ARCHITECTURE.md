@@ -17,7 +17,7 @@ Service manager (browser)  ──HTTP───> FixVision (runs locally for the 
 | API | Python 3.12, FastAPI | REST endpoints, uploads, job state machine |
 | Worker | Same codebase, async tasks | Calls models, runs perception and verification off the request path |
 | Database | SQLite (hackathon) → Postgres later | Jobs, observations, verdicts, records, steps, cost ledger |
-| Media store | Local disk (hackathon) → object storage later | Clips, sampled frames, audio; retention limit |
+| Media store | Local disk (hackathon) → object storage later | Clips, evidence frames, audio; kept until deleted by hand |
 
 ## 3. Components
 

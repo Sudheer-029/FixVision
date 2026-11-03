@@ -15,7 +15,7 @@ export default defineConfig({
       url: `http://localhost:${API}/health`,
     },
     {
-      command: `npx next dev -p ${WEB}`,
+      command: `npx next dev -H 127.0.0.1 -p ${WEB}`,
       env: { API_ORIGIN: `http://localhost:${API}` },
       url: `http://localhost:${WEB}`,
     },

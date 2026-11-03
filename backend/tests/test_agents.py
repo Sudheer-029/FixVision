@@ -7,7 +7,6 @@ import pytest
 
 from app.agents import reasoning as R
 from app.clients.meta_client import CallResult
-from app.config import Settings
 
 FIX = Path(__file__).parent / "fixtures" / "agents"
 VERDICT_WORDS = ("PASSED", "FAILED", "INCONCLUSIVE")
@@ -149,13 +148,6 @@ def test_guidance_citing_unknown_section_is_repaired():
     client = FakeClient(json.dumps(bad), golden("guidance_f1.json"))
     assert R.guidance(client, "m", "F1").cited_sections != ["G-F9"]
     assert "cited_sections must be guide section ids" in sent_text(client)
-
-
-def test_contributor_model_only_for_staged_evals():
-    cfg = Settings()
-    assert R.model_for(cfg, "staged", eval_mode=True) == cfg.reasoning_model_eval
-    assert R.model_for(cfg, "staged") == cfg.reasoning_model
-    assert R.model_for(cfg, "real", eval_mode=True) == cfg.reasoning_model
 
 
 def test_every_prompt_has_an_id():

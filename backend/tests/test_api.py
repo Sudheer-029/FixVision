@@ -247,6 +247,55 @@ def test_broken_evidence_frame_does_not_block_the_verdict(rig):
     assert rig.job(job_id)["evidence"] == []
 
 
+def test_unknown_fault_gets_no_repair_steps(rig):
+    job_id = rig.api.post("/jobs", json={}).json()["id"]
+    rig.upload(job_id, "symptom")
+    rig.api.post(f"/jobs/{job_id}/triage", json={})
+    rig.drain()
+    rig.upload(job_id, "check")
+    rig.client.calls.clear()
+    r = rig.api.post(f"/jobs/{job_id}/guidance", json={"fault_id": "unknown"})
+    assert r.status_code == 409 and "senior technician" in r.json()["detail"]
+    assert rig.client.calls == [] and rig.job(job_id)["state"] == "CHECK_CAPTURED"
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"fill_time_s": 4.9},
+        {"fill_time_s": 601},
+        {"conditions": {"head_cm": -5}},
+        {"conditions": {"head_cm": 201}},
+        {"conditions": {"water_level_cm": -1}},
+    ],
+)
+def test_impossible_test_values_are_refused(rig, bad):
+    job_id = rig.to_test_captured()
+    assert rig.api.post(f"/jobs/{job_id}/test", json=bad).status_code == 422
+    assert rig.job(job_id)["state"] == "TEST_CAPTURED"
+
+
+def test_record_hides_a_fill_time_the_rules_did_not_trust(rig):
+    rig.break_evidence = lambda ev: replace_obs(ev, "fill_line_t", confidence=0.5)
+    job_id = rig.to_test_captured()
+    assert rig.run_test(job_id) == "INCONCLUSIVE"
+    assert rig.api.get(f"/jobs/{job_id}/record").json()["measurements"]["fill_time_video_s"] is None
+
+
+def test_retry_keeps_the_failed_attempts_calls_in_the_trace(rig):
+    job_id = rig.api.post("/jobs", json={}).json()["id"]
+    rig.upload(job_id, "symptom")
+    rig.upload(job_id, "voice", "note.m4a")
+    rig.client.fail = True  # the voice call is billed, then triage fails
+    rig.api.post(f"/jobs/{job_id}/triage", json={})
+    rig.drain()
+    rig.client.fail = False
+    rig.api.post(f"/jobs/{job_id}/triage", json={})
+    rig.drain()
+    trace = rig.api.get(f"/jobs/{job_id}/trace").json()
+    assert sum(len(s["calls"]) for s in trace["steps"]) == trace["total_calls"] == 3
+
+
 def test_unknown_job_is_404(rig):
     assert rig.api.get("/jobs/nope").status_code == 404
     assert rig.api.get("/jobs/nope/trace").status_code == 404
@@ -370,7 +419,7 @@ def test_restart_makes_unfinished_steps_retryable(rig):
     assert rig.job(job_id)["state"] == "CHECK_REQUESTED"
 
 
-def test_customer_data_never_uses_the_contributor_model(rig):
+def test_customer_job_uses_the_standard_model(rig):
     job_id = rig.api.post("/jobs", json={"data_class": "customer"}).json()["id"]
     assert json.loads(rig.upload(job_id, "symptom").text)["kind"] == "symptom"
     rig.api.post(f"/jobs/{job_id}/triage", json={})
