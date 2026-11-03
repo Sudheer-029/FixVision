@@ -7,13 +7,14 @@ from typing import Annotated, Any, Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field, model_validator
 from sqlmodel import Session, select
 
 from app.jobs import steps as S
-from app.jobs.models import Job, Media, Record, Step, VerdictRow, now
+from app.jobs.models import Job, Media, Record, Step, now
 from app.jobs.state import State
-from app.verification.schema import SUPPORTED_EQUIPMENT, Conditions, Fault
+from app.verification.schema import SUPPORTED_EQUIPMENT, Conditions, Fault, Token
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -21,6 +22,7 @@ MediaKind = Literal["symptom", "check", "closeup", "test", "voice"]
 SUFFIXES = {".mp4", ".mov", ".webm", ".m4a", ".wav"}
 MAX_UPLOAD_BYTES = 300 * 1024 * 1024
 TOKEN_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I: the code is handwritten
+EVIDENCE_CONCEPTS = ("jar", "intake")
 MEDIA_TARGET = {
     "symptom": State.SYMPTOM_CAPTURED,
     "check": State.CHECK_CAPTURED,
@@ -32,6 +34,14 @@ MEDIA_TARGET = {
 class CreateJob(BaseModel):
     equipment: Literal[SUPPORTED_EQUIPMENT] = SUPPORTED_EQUIPMENT  # type: ignore[valid-type]
     data_class: Literal["staged", "customer"] = "staged"
+    token: Token | None = None  # lets a recorded rig clip keep the code it shows
+
+    @model_validator(mode="after")
+    def _staged_only(self):
+        # a chosen code on real work would let an old video pass the reuse check
+        if self.token is not None and self.data_class != "staged":
+            raise ValueError("only staged jobs can choose their token")
+        return self
 
 
 class TriageIn(BaseModel):
@@ -93,7 +103,7 @@ def save_upload(file: UploadFile, path: Path) -> None:
 
 @router.post("", status_code=201)
 def create_job(body: CreateJob, deps: DepsDep) -> dict[str, str]:
-    token = "".join(secrets.choice(TOKEN_ALPHABET) for _ in range(4))
+    token = body.token or "".join(secrets.choice(TOKEN_ALPHABET) for _ in range(4))
     job = Job(
         id=uuid4().hex[:12], token=token, equipment=body.equipment,
         data_class=body.data_class, state=State.CREATED,
@@ -184,8 +194,7 @@ def get_job(job_id: str, deps: DepsDep) -> dict[str, Any]:
         job = load_job(s, job_id)
         media = s.exec(select(Media).where(Media.job_id == job_id)).all()
         steps = s.exec(select(Step).where(Step.job_id == job_id)).all()
-        query = select(VerdictRow).where(VerdictRow.job_id == job_id)
-        verdict = s.exec(query.order_by(VerdictRow.id.desc())).first()  # type: ignore[union-attr]
+        verdict = S.latest_verdict(s, job_id)
         record = s.get(Record, job_id)
         return {
             "id": job.id,
@@ -205,8 +214,25 @@ def get_job(job_id: str, deps: DepsDep) -> dict[str, Any]:
                 for st in steps
             ],
             "verdict": json.loads(verdict.data_json) if verdict else None,
+            "evidence": [
+                c
+                for c in EVIDENCE_CONCEPTS
+                if verdict
+                and (S.evidence_dir(deps.cfg, job_id, verdict.step) / f"{c}.jpg").exists()
+            ],
             "record": record.model_dump() if record else None,
         }
+
+
+@router.get("/{job_id}/evidence/{concept}")
+def get_evidence(job_id: str, concept: Literal["jar", "intake"], deps: DepsDep) -> FileResponse:
+    with Session(deps.engine) as s:
+        load_job(s, job_id)
+        verdict = S.latest_verdict(s, job_id)
+    path = S.evidence_dir(deps.cfg, job_id, verdict.step) / f"{concept}.jpg" if verdict else None
+    if path is None or not path.exists():
+        raise HTTPException(404, "no evidence frame")
+    return FileResponse(path, media_type="image/jpeg")
 
 
 @router.get("/{job_id}/trace")

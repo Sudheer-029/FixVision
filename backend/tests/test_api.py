@@ -2,6 +2,8 @@
 
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -56,6 +58,8 @@ class Rig:
         self.client = FakeClient(Ledger(cfg.ledger_path))
         self.break_evidence = lambda ev: ev
         self.seen_collect = []
+        self.tracks = {}
+        self.clip_bytes = b"video-bytes"
         deps = Deps(
             cfg, make_engine(cfg.db_path), self.client, self.collect, lambda _cfg, clip: clip
         )
@@ -68,7 +72,7 @@ class Rig:
         ev = healthy(fault=fault, job_id=job_id, job_token=job_token, conditions=conditions)
         for clip in ("test", "closeup"):
             ev = replace_obs(ev, "job_token_read", clip, value=job_token)
-        return Collected(self.break_evidence(ev), 0.02)
+        return Collected(self.break_evidence(ev), 0.02, self.tracks)
 
     def drain(self) -> None:
         self.app.state.worker.submit(lambda: None).result()
@@ -78,7 +82,7 @@ class Rig:
 
     def upload(self, job_id: str, kind: str, name: str = "clip.mp4"):
         return self.api.post(
-            f"/jobs/{job_id}/media", data={"kind": kind}, files={"file": (name, b"video-bytes")}
+            f"/jobs/{job_id}/media", data={"kind": kind}, files={"file": (name, self.clip_bytes)}
         )
 
     def to_test_captured(self) -> str:
@@ -124,6 +128,16 @@ def test_create_returns_a_token_the_engine_accepts(rig):
     assert r.status_code == 201
     assert re.fullmatch(r"[A-HJ-NP-Z2-9]{4}", r.json()["token"])
     assert r.json()["state"] == "CREATED"
+
+
+def test_staged_job_can_keep_the_code_in_its_clip(rig):
+    assert rig.api.post("/jobs", json={"token": "R2C6"}).json()["token"] == "R2C6"
+    assert rig.api.post("/jobs", json={"token": "bad code"}).status_code == 422
+
+
+def test_customer_job_cannot_choose_its_token(rig):
+    r = rig.api.post("/jobs", json={"data_class": "customer", "token": "R2C6"})
+    assert r.status_code == 422
 
 
 def test_unsupported_equipment_is_refused(rig):
@@ -194,6 +208,32 @@ def test_passed_job_cannot_go_back_to_capture(rig):
     job_id = rig.to_test_captured()
     rig.run_test(job_id)
     assert rig.upload(job_id, "closeup").status_code == 409
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
+def test_evidence_frames_are_served(rig, tmp_path):
+    clip = tmp_path / "real.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=30:size=320x240:rate=2",
+         str(clip)],
+        check=True,
+    )  # fmt: skip
+    rig.clip_bytes = clip.read_bytes()
+    rig.tracks = {"jar": {1.0: (10, 10, 100, 100)}, "intake": {}}
+    job_id = rig.to_test_captured()
+    rig.run_test(job_id)
+    assert rig.job(job_id)["evidence"] == ["jar"]
+    r = rig.api.get(f"/jobs/{job_id}/evidence/jar")
+    assert r.status_code == 200 and r.headers["content-type"] == "image/jpeg"
+    assert rig.api.get(f"/jobs/{job_id}/evidence/intake").status_code == 404
+    assert rig.api.get(f"/jobs/{job_id}/evidence/secrets").status_code == 422
+
+
+def test_broken_evidence_frame_does_not_block_the_verdict(rig):
+    rig.tracks = {"jar": {1.0: (10, 10, 100, 100)}}  # the clip bytes are not a video: ffmpeg fails
+    job_id = rig.to_test_captured()
+    assert rig.run_test(job_id) == "PASSED"
+    assert rig.job(job_id)["evidence"] == []
 
 
 def test_unknown_job_is_404(rig):

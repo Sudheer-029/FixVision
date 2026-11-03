@@ -92,3 +92,18 @@ def crop_frames(
         + [str(out_dir / "f%04d.jpg")]
     )
     return sorted(out_dir.glob("f*.jpg"))
+
+
+def boxed_frame(
+    src: str | Path, box: tuple[float, float, float, float], t: float, dst: str | Path
+) -> Path:
+    """One 720p JPEG at `t` seconds with `box` (source pixels) drawn on it."""
+    dst = Path(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    x1, y1, x2, y2 = box
+    draw = f"drawbox=x={x1:.0f}:y={y1:.0f}:w={x2 - x1:.0f}:h={y2 - y1:.0f}:color=lime:t=8"
+    _run(
+        ["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", str(src), "-frames:v", "1"]
+        + ["-vf", f"{draw},scale=-2:720", "-q:v", "3", str(dst)]
+    )
+    return dst

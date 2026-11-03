@@ -26,8 +26,8 @@ ACTIONS: dict[str, str] = {
     "C0_preconditions": "Re-record the test clip with this job's token, the timer, the submerged "
     "pump, the hose and the jar in view for the first 5 s",
     "C1_running": "Re-record showing the switch turned on and at least 20 s of running",
-    "C2_flow": "Keep the jar in frame until the water passes the fill line and re-enter the "
-    "fill time",
+    "C2_flow": "Repeat the test with the jar in frame until the water passes the fill line, "
+    "and enter the fill time",
     "C4_cause_addressed": "Record a close-up of the clean intake with this job's token",
 }
 ESCALATE = "Escalate to a senior technician"

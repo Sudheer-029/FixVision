@@ -4,5 +4,5 @@ Mobile-first Next.js app for guided capture. See [docs/components/capture-web-ap
 
 ```bash
 npm install
-NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev
+API_ORIGIN=http://localhost:8000 npm run dev
 ```

@@ -17,11 +17,17 @@ def perceive(
     fps: float,
     workdir: str | Path,
     job_id: str | None = None,
-) -> tuple[dict[Clip, dict[str, Timeline | None]], dict[str, Box | None], float]:
-    """Run every concept on its clip (whole clip): timelines, boxes per concept, SAM cost."""
+) -> tuple[
+    dict[Clip, dict[str, Timeline | None]],
+    dict[str, Box | None],
+    float,
+    dict[str, dict[float, Box]],
+]:
+    """Run every concept on its clip (whole clip): timelines, median boxes, SAM cost, box tracks."""
     clips: dict[Clip, str | Path | None] = {"test": test_clip, "closeup": closeup_clip}
     timelines: dict[Clip, dict[str, Timeline | None]] = {}
     boxes: dict[str, Box | None] = {}
+    tracks: dict[str, dict[float, Box]] = {}
     cost = 0.0
     for concept, (clip, prompt) in CONCEPTS.items():
         path = clips[clip]
@@ -30,5 +36,6 @@ def perceive(
         seg = segment(client, path, prompt, fps, workdir, job_id=job_id)
         timelines.setdefault(clip, {})[concept] = seg.timeline
         boxes[concept] = seg.box
+        tracks[concept] = seg.track
         cost += seg.cost_usd
-    return timelines, boxes, cost
+    return timelines, boxes, cost, tracks

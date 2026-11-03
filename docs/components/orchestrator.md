@@ -6,12 +6,13 @@
 ## API (v0)
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/jobs` | Create job (equipment, data_class) → job id, token |
+| POST | `/jobs` | Create job (equipment, data_class; a staged job may pass the `token` its recorded clip shows, a customer job never can) → job id, token |
 | POST | `/jobs/{id}/media` | Upload clip or audio with `kind` (`symptom`, `check`, `closeup` (post-repair), `test`, `voice`) |
 | POST | `/jobs/{id}/triage` | Run reasoning on symptom → causes + requested check |
 | POST | `/jobs/{id}/guidance` | Guidance for the confirmed cause |
 | POST | `/jobs/{id}/test` | Submit test measurements and conditions; starts verification |
 | GET | `/jobs/{id}` | Job state, verdict, record |
+| GET | `/jobs/{id}/evidence/{jar\|intake}` | Frame with SAM's box from the latest verdict |
 | GET | `/jobs/{id}/trace` | Model calls, latency, cost |
 | POST | `/jobs/{id}/review` | Manager approve / reject |
 

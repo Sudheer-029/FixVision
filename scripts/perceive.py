@@ -23,7 +23,7 @@ def main() -> None:
     p.add_argument("--closeup", type=Path)
     args = p.parse_args()
     cfg = Settings()
-    timelines, cost = perceive(
+    timelines, _, cost, _ = perceive(
         MetaClient(cfg),
         args.clip,
         args.closeup,

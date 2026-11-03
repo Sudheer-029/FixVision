@@ -4,13 +4,14 @@ SAM finds the jar; ffmpeg crops time-labelled jar frames; Muse Spark observes th
 video, labels the jar frames and observes the close-up.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.agents import reasoning
 from app.clients.meta_client import Cache, MetaClient, file_sha256
 from app.config import Settings
 from app.perception import frames
+from app.perception.sam import Box
 from app.perception.signals import perceive
 from app.verification.schema import SUPPORTED_EQUIPMENT, Conditions, JobEvidence, Observation
 
@@ -21,6 +22,7 @@ FILL_FPS = 1.0
 class Collected:
     evidence: JobEvidence
     sam_cost_usd: float
+    tracks: dict[str, dict[float, Box]] = field(default_factory=dict)
 
 
 def model_copy(cfg: Settings, clip: Path) -> Path:
@@ -43,7 +45,7 @@ def collect_evidence(
     model: str,
 ) -> Collected:
     work = cfg.cache_dir / "perception"
-    timelines, boxes, sam_cost = perceive(
+    timelines, boxes, sam_cost, tracks = perceive(
         client, test_clip, closeup_clip, cfg.sam_sample_fps, work, job_id=job_id
     )
 
@@ -70,4 +72,25 @@ def collect_evidence(
         conditions=conditions,
         models={"reasoning": model, "segmentation": cfg.segmentation_model},
     )
-    return Collected(evidence, sam_cost)
+    return Collected(evidence, sam_cost, tracks)
+
+
+def evidence_frames(
+    collected: Collected, test_clip: Path, closeup_clip: Path | None, out_dir: Path
+) -> None:
+    """jar.jpg / intake.jpg: SAM's own box on the sampled frame nearest the moment that matters."""
+    ev = collected.evidence
+
+    def draw(concept: str, clip: Path, wanted: float) -> None:
+        track = collected.tracks.get(concept)
+        if track:
+            t = min(track, key=lambda seen: abs(seen - wanted))
+            frames.boxed_frame(clip, track[t], t, out_dir / f"{concept}.jpg")
+
+    def at(obs_id: str, clip: str, fallback: float) -> float:
+        o = ev.observation(obs_id, clip, 0.0)
+        return o.t[0] if o and o.t else fallback
+
+    draw("jar", test_clip, at("fill_line_t", "test", ev.test_clip_duration_s / 2))
+    if closeup_clip is not None:
+        draw("intake", closeup_clip, at("intake_clear", "closeup", 1.0))

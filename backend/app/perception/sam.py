@@ -7,7 +7,7 @@ to Muse Spark (ADR-0009).
 
 import logging
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import httpx
@@ -36,6 +36,7 @@ class Segmented:
     timeline: Timeline | None  # None = request failed or garbled stream (missing evidence)
     box: Box | None  # median box of the most-seen object; used to crop the jar for Muse Spark
     cost_usd: float
+    track: dict[float, Box] = field(default_factory=dict)  # clip seconds → that frame's box
 
 
 def parse(text: str) -> list | None:
@@ -54,16 +55,31 @@ def presence_times(records: list, start: float, fps: float) -> list[float]:
     return [round(start + k / fps, 3) for k in sorted(frames_seen)]
 
 
-def median_box(records: list) -> Box | None:
+def _main_object_boxes(records: list) -> list:
     boxes = [r for r in records if r.kind == "box"]
     if not boxes:
-        return None
+        return []
     ids = [r.object_id for r in boxes]
     # most-seen object; ties go to SAM's first object id (set order alone is random per run)
     main = max(sorted(set(ids), key=int), key=ids.count)
-    own = [r for r in boxes if r.object_id == main]
+    return [r for r in boxes if r.object_id == main]
+
+
+def median_box(records: list) -> Box | None:
+    own = _main_object_boxes(records)
+    if not own:
+        return None
     x1, y1, x2, y2 = (statistics.median(getattr(r, k) for r in own) for k in BOX_SIDES)
     return x1, y1, x2, y2
+
+
+def box_track(records: list, start: float, fps: float) -> dict[float, Box]:
+    """The main object's own box per sampled frame: a moving part is not at its median box."""
+    return {
+        round(start + r.frame.frame_index / fps, 3): tuple(getattr(r, k) for k in BOX_SIDES)
+        for r in _main_object_boxes(records)
+        if r.frame
+    }
 
 
 def segment(
@@ -90,4 +106,4 @@ def segment(
     if records is None:
         return Segmented(None, None, r.cost_usd)
     timeline = Timeline(times=presence_times(records, start, fps), interval_s=1 / fps)
-    return Segmented(timeline, median_box(records), r.cost_usd)
+    return Segmented(timeline, median_box(records), r.cost_usd, box_track(records, start, fps))

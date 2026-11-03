@@ -7,6 +7,7 @@ so a crash between them leaves the step re-runnable, never half applied.
 import json
 import logging
 import sqlite3
+import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cache
@@ -30,7 +31,7 @@ from app.jobs.models import (
     now,
 )
 from app.jobs.state import State, check
-from app.pipeline import collect_evidence, model_copy
+from app.pipeline import collect_evidence, evidence_frames, model_copy
 from app.verification.engine import verify
 from app.verification.schema import Conditions
 from app.verification.thresholds import load_thresholds
@@ -63,6 +64,15 @@ def advance(job: Job, *to: State) -> None:
 def latest_media(s: Session, job_id: str, kind: str) -> Media | None:
     query = select(Media).where(Media.job_id == job_id, Media.kind == kind)
     return s.exec(query.order_by(Media.id.desc())).first()  # type: ignore[union-attr]
+
+
+def latest_verdict(s: Session, job_id: str) -> VerdictRow | None:
+    query = select(VerdictRow).where(VerdictRow.job_id == job_id)
+    return s.exec(query.order_by(VerdictRow.id.desc())).first()  # type: ignore[union-attr]
+
+
+def evidence_dir(cfg: Settings, job_id: str, step: str) -> Path:
+    return cfg.jobs_dir / job_id / "evidence" / step.replace(":", "-")
 
 
 def claim(s: Session, job_id: str, step: str) -> bool:
@@ -150,6 +160,11 @@ def verify_job(
     )
     evidence = collected.evidence
     verdict = verify(evidence, load_thresholds(deps.cfg.rig_baseline_path))
+    closeup = Path(closeup_path) if closeup_path else None
+    try:
+        evidence_frames(collected, Path(test_path), closeup, evidence_dir(deps.cfg, job.id, step))
+    except (subprocess.CalledProcessError, OSError):  # an illustration never blocks a verdict
+        log.exception("evidence frames failed for job %s", job.id)
 
     def apply(s: Session, j: Job) -> None:
         for o in evidence.observations:

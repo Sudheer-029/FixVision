@@ -66,9 +66,10 @@ def test_perceive_builds_engine_timelines(tmp_path, no_ffmpeg):
         {"glass jar": fixture("glass_jar_4frames.txt"),
          "white pump": fixture("white_pump_closeup_3frames.txt")}
     )  # fmt: skip
-    timelines, boxes, cost = perceive(client, clip, closeup, 3, tmp_path)
+    timelines, boxes, cost, tracks = perceive(client, clip, closeup, 3, tmp_path)
     assert timelines["test"]["jar"].times == [0.0, 0.333, 0.667, 1.0]
     assert boxes["jar"] is not None and boxes["intake"] is not None
+    assert sorted(tracks["jar"]) == [0.0, 0.333, 0.667, 1.0]
     assert timelines["closeup"]["intake"].times == [0.0, 0.333, 0.667]
     assert timelines["test"]["jar"].interval_s == pytest.approx(1 / 3)
     assert cost == pytest.approx(0.02)
@@ -78,14 +79,14 @@ def test_request_error_gives_no_timeline(tmp_path, no_ffmpeg):
     clip = tmp_path / "test.mp4"
     clip.write_bytes(b"x")
     client = FakeClient(error=APIConnectionError(request=None))
-    timelines, boxes, cost = perceive(client, clip, None, 3, tmp_path)
+    timelines, boxes, cost, _ = perceive(client, clip, None, 3, tmp_path)
     assert timelines == {"test": {"jar": None}} and boxes == {"jar": None} and cost == 0.0
 
 
 def test_garbled_answer_gives_no_timeline(tmp_path, no_ffmpeg):
     clip = tmp_path / "test.mp4"
     clip.write_bytes(b"x")
-    timelines, _, cost = perceive(
+    timelines, _, cost, _ = perceive(
         FakeClient({"glass jar": "<0f>0<|box|>\n"}), clip, None, 3, tmp_path
     )
     assert timelines == {"test": {"jar": None}} and cost == 0.01
