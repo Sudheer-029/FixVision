@@ -8,7 +8,7 @@
 Feedback: "each model doing a necessary job, not just appearing in the pitch". SAM 3.1 segments and tracks; it does not diagnose.
 
 ## Decision
-Muse Spark 1.3: reasoning and observations. SAM 3.1: segmentation and tracking signals for the verification engine. Voice Transcribe: speech input. Muse Spark Open: record drafting and eval backend. Muse Image optional. Muse Wonder not used (it is a coding/agentic model).
+Muse Spark 1.3: reasoning and observations. SAM 3.1: segmentation and tracking signals for the verification engine. Voice Transcribe: speech input. Muse Wonder not used (it is a coding/agentic model).
 
 ## Alternatives considered
 | Option | Pros | Cons |
