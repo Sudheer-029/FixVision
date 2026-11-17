@@ -13,6 +13,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Da
 - 2026-11-02: orchestrator and API (`backend/app/jobs/`, `backend/app/api/`): job state machine, SQLite tables, one background worker with idempotent steps, `GET /jobs/{id}/trace`.
 - 2026-11-03: local web app (`frontend/`): job code, guided capture, functional test, verdict with evidence frames, trace and manager review; Playwright smoke test. Staged jobs can keep the code in a recorded clip.
 - 2026-11-03: Evals with fresh model calls (`evals/`), Hindi and English voice notes, service record page and JSON.
+- 2026-11-17 (after the hackathon, docs only): README badges, app screenshots from the mocked end-to-end test, quality section; removed the empty demo-video row.
 - 2026-11-03: Audit fixes: Next.js security update, unknown faults get no repair steps, app limited to this machine, limits on test values, ffmpeg timeout.
 - 2026-11-01: SAM 3.1 perception (`backend/app/perception/`: ffmpeg sampling, `glass jar` and `white pump` prompts, presence timelines), recorded SAM fixtures, `scripts/perceive.py`; ADR-0009 (C1 water flow from Muse Spark).
 - 2026-11-01: verification engine (`backend/app/verification/`) with boundary, adversarial and property tests at 100% branch coverage (enforced in CI); `scripts/verify_json.py`.

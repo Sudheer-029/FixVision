@@ -1,5 +1,11 @@
 # FixVision
 
+[![CI](https://github.com/Sudheer-029/FixVision/actions/workflows/ci.yml/badge.svg)](https://github.com/Sudheer-029/FixVision/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![Verification engine coverage](https://img.shields.io/badge/verification%20engine%20coverage-100%25-brightgreen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 **See it. Fix it. Verify it.**
 Evidence-backed repair verification for small water pumps, built on Meta's models.
 
@@ -13,9 +19,15 @@ The pump is the first equipment family. The method (models observe, rules decide
 
 | | |
 |---|---|
-| Demo video | _link added at submission_ |
 | Repository | https://github.com/Sudheer-029/FixVision |
 | Built | Oct 26 – Nov 4, 2026 (see [Built during the hackathon](#built-during-the-hackathon)) |
+
+<p align="center">
+  <img src="docs/img/triage.png" width="250" alt="Diagnostic check requested from a Hindi and English symptom description">
+  <img src="docs/img/verdict.png" width="250" alt="Verdict with each functional check and its measurement">
+  <img src="docs/img/record.png" width="250" alt="Service record with test conditions and uncertainty">
+</p>
+<p align="center"><sub>Diagnostic check · verdict · service record. Captured from the end-to-end test, which runs the real API, worker and database with mocked model responses.</sub></p>
 
 ---
 
@@ -105,6 +117,13 @@ Five staged trials with fresh model calls, on clips also used during development
 | Cost per job (USD) | $0.105 |
 
 The miss: the faulty clip came back Inconclusive instead of Failed, because Muse Spark did not confirm the pump was submerged on that run. Results vary between runs. No real clip reached Passed, so that path is covered only by automated tests with constructed evidence.
+
+## Quality
+
+- **234 backend tests**, plus a Playwright end-to-end test that takes a job from new to manager-approved
+- **100% branch coverage** on the verification engine, enforced in CI (the build fails below 100%)
+- CI runs `ruff` lint and format checks, the test suite, and the frontend lint and production build on every push
+- [Architecture decision records](docs/architecture/adr/) for each significant design choice
 
 ## Built during the hackathon
 
